@@ -1,0 +1,11 @@
+[package]
+name = "register-bot"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+serenity = "0.12.4"
+tokio = { version = "1.29.1", features = ["macros", "rt-multi-thread"] }
+async-trait = "0.1.88"
+thiserror = "2.0.12"
+dotenv = "0.15.0"
