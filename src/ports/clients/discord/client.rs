@@ -96,30 +96,6 @@ where
     }
 
     async fn presence_update(&self, ctx: Context, presence: Presence) {
-        log::info!("Presence update for {} status - {:?}", presence.user.id, presence.status);
-        if let Some(name) = presence.user.name {
-            log::info!("Presence update for {}", name);
-        }
-
-        if let Some(is_bot) = presence.user.bot && !is_bot {
-            return;
-        }
-
-        if presence.status == OnlineStatus::Offline && let Some(entry) = self.fetch_from_register(presence.user.id.into()).await {
-            log::info!("A bot went offline!");
-            let user_id = UserId::new(entry.user_id);
-            let bot_id = UserId::new(entry.bot_id);
-            let bot_name = bot_id.to_user(&ctx.http).await.unwrap().name;
-
-            let message = MessageBuilder::new()
-                .push("Hello, ")
-                .mention(&user_id)
-                .push(format!(" Your bot named '{bot_name}': "))
-                .mention(&bot_id)
-                .push(" has gone offline!")
-                .build();
-
-            user_id.direct_message(&ctx, CreateMessage::new().content(message)).await.unwrap();
-        }
+        self.resolve_update(ctx, presence).await;
     }
 }
