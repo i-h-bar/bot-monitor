@@ -1,3 +1,15 @@
+use crate::domain::register::Register;
 
+pub struct App<R>
+where
+    R: Register,
+{
+    pub register: R,
+}
 
-pub struct App;
+impl<R> App<R>
+where R: Register, {
+    pub fn new(register: R) -> Self {
+        Self { register }
+    }
+}

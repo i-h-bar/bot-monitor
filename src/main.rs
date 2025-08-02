@@ -1,5 +1,6 @@
 use crate::ports::clients::Client;
 use dotenv::dotenv;
+use crate::adapters::register::init_register;
 use crate::domain::app::App;
 use crate::ports::clients::init_client;
 
@@ -11,7 +12,9 @@ pub mod ports;
 #[tokio::main]
 async fn main() {
     dotenv().ok();
-    let app = App;
+    env_logger::init();
+    let register = init_register().await;
+    let app = App::new(register);
     let mut client = init_client(app).await;
 
     client.run().await;

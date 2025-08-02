@@ -1,5 +1,6 @@
 use async_trait::async_trait;
 use crate::domain::app::App;
+use crate::domain::register::Register;
 use crate::ports::clients::discord::client::DiscordClient;
 
 pub mod discord;
@@ -12,6 +13,6 @@ pub trait Client {
 }
 
 
-pub async fn init_client(app: App) -> impl Client {
+pub async fn init_client<R: Register + Send + Sync + 'static>(app: App<R>) -> impl Client {
     DiscordClient::new(app).await
 }
