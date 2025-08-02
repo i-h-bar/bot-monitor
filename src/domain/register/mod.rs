@@ -1,24 +1,21 @@
 mod logic;
 
 use async_trait::async_trait;
-use chrono::{DateTime, Utc};
+use serenity::all::UserId;
 use thiserror::Error;
-use uuid::Uuid;
 
+#[derive(Debug, Clone)]
 pub struct RegisterEntry {
-    id: Uuid,
-    pub bot_id: String,
-    pub user_id: String,
-    pub last_successful_ping: DateTime<Utc>
+    pub bot_id: u64,
+    pub user_id: u64,
 }
 
 #[derive(Error, Debug)]
 #[error("Could not create register entry")]
 pub struct RegisterError;
 
-
 #[async_trait]
 pub trait Register {
-    async fn check(&self, bot_id: &str);
+    async fn fetch(&self, bot_id: u64) -> Option<RegisterEntry>;
     async fn add(&self, entry: RegisterEntry) -> Result<(), RegisterError>;
 }
