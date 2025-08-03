@@ -18,4 +18,6 @@ pub struct RegisterError;
 pub trait Register {
     async fn fetch(&self, bot_id: u64) -> Option<RegisterEntry>;
     async fn add(&self, entry: RegisterEntry) -> Result<(), RegisterError>;
+    async fn remove(&self, bot_id: u64, user_id: u64) -> Result<(), RegisterError>;
+    async fn list(&self, user_id: u64) -> Result<Vec<RegisterEntry>, RegisterError>;
 }

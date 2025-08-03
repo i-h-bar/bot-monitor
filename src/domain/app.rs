@@ -8,7 +8,9 @@ where
 }
 
 impl<R> App<R>
-where R: Register, {
+where
+    R: Register,
+{
     pub fn new(register: R) -> Self {
         Self { register }
     }

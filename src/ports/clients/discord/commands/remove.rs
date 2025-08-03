@@ -1,19 +1,19 @@
 use crate::domain::app::App;
-use crate::domain::register::{Register, RegisterEntry};
+use crate::domain::register::{Register, RegisterError};
 use crate::ports::clients::discord::utils::messages;
 use serenity::all::{
-    Command, CommandInteraction, CommandOptionType, Context, CreateCommand, CreateCommandOption,
+    CommandInteraction, CommandOptionType, Context, CreateCommand, CreateCommandOption,
     CreateInteractionResponse, CreateInteractionResponseMessage, ResolvedValue, User,
 };
 
 pub fn register() -> CreateCommand {
-    CreateCommand::new("add")
-        .description("Add a bot to a register")
+    CreateCommand::new("remove")
+        .description("Remove a bot from the register")
         .add_option(
             CreateCommandOption::new(
                 CommandOptionType::User,
                 "bot",
-                "The bot you want to add to the register",
+                "The bot you want to remove from the register",
             )
             .required(true),
         )
@@ -23,7 +23,7 @@ impl<R> App<R>
 where
     R: Register,
 {
-    pub async fn add_command(&self, ctx: &Context, command: CommandInteraction) {
+    pub async fn remove_command(&self, ctx: &Context, command: CommandInteraction) {
         let options = command.data.options();
         let mut bot: Option<&User> = None;
 
@@ -38,26 +38,22 @@ where
         }
 
         let Some(bot) = bot else {
-            messages::send_ephemeral(&ctx, &command, "Failed to add bot to register").await;
+            messages::send_ephemeral(&ctx, &command, "Failed to remove bot from the register")
+                .await;
             return;
         };
 
-        if !bot.bot {
-            messages::send_ephemeral(&ctx, &command, "This is to track bots not to spy on people")
+        if let Err(_) = self
+            .remove_from_register(bot.id.into(), command.user.id.into())
+            .await
+        {
+            messages::send_ephemeral(&ctx, &command, "Failed to remove bot from the register")
                 .await;
-        }
-
-        let entry = RegisterEntry {
-            bot_id: bot.id.into(),
-            user_id: command.user.id.into(),
-        };
-
-        if let Err(_) = self.add_to_register(entry).await {
-            messages::send_ephemeral(&ctx, &command, "Failed to add bot to register").await;
+            return;
         };
 
         let message = format!(
-            "Added to {} to the register. I will now DM you when it goes offline and when it comes online.",
+            "I have removed {} from the register. I will no longer DM you when the bot goes offline or comes online",
             bot.name
         );
         messages::send_ephemeral(&ctx, &command, &message).await;
