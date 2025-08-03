@@ -9,7 +9,7 @@ where
         self.register.add(entry).await
     }
 
-    pub async fn fetch_from_register(&self, bot_id: u64) -> Option<RegisterEntry> {
+    pub async fn fetch_from_register(&self, bot_id: u64) -> Option<Vec<RegisterEntry>> {
         self.register.fetch(bot_id).await
     }
 

@@ -5,7 +5,7 @@ use crate::ports::clients::discord::utils::user::user_from_id;
 use serenity::all::{CommandInteraction, Context, CreateCommand, MessageBuilder, UserId};
 
 pub fn register() -> CreateCommand {
-    CreateCommand::new("warnings").description("List all the warnings you currently have active")
+    CreateCommand::new("list").description("List all the warnings you currently have active")
 }
 
 impl<R> App<R>

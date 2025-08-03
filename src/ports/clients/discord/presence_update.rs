@@ -22,9 +22,9 @@ where
     R: Register,
 {
     pub async fn resolve_update(&self, ctx: Context, presence: Presence) {
-        if !is_bot(&ctx, &presence.user).await {
-            return;
-        }
+        // if !is_bot(&ctx, &presence.user).await {
+        //     return;
+        // }
 
         match presence.status {
             OnlineStatus::Offline | OnlineStatus::Invisible => {
@@ -36,59 +36,64 @@ where
     }
 
     async fn resolve_online(&self, ctx: &Context, presence: Presence) {
-        if let Some(entry) = self.fetch_from_register(presence.user.id.into()).await {
+        if let Some(entrys) = self.fetch_from_register(presence.user.id.into()).await {
             log::info!("A bot came back online!");
-            let user_id = UserId::new(entry.user_id);
-            let bot_id = UserId::new(entry.bot_id);
-            let bot_name = if let Some(bot) = user_from_id(ctx, bot_id.into()).await {
-                bot.name
-            } else {
-                String::from("Placeholder Name")
-            };
+            for entry in entrys {
+                let user_id = UserId::new(entry.user_id);
+                let bot_id = UserId::new(entry.bot_id);
+                let bot_name = if let Some(bot) = user_from_id(ctx, bot_id.into()).await {
+                    bot.name
+                } else {
+                    String::from("Placeholder Name")
+                };
 
-            let message = MessageBuilder::new()
-                .push("Hurray! ")
-                .mention(&user_id)
-                .push(", your bot '")
-                .push(bot_name)
-                .push("': ")
-                .mention(&bot_id)
-                .push(" is back online!")
-                .build();
+                let message = MessageBuilder::new()
+                    .push("Hurray! ")
+                    .mention(&user_id)
+                    .push(", your bot '")
+                    .push(bot_name)
+                    .push("': ")
+                    .mention(&bot_id)
+                    .push(" is back online!")
+                    .build();
 
-            if let Err(why) = user_id
-                .direct_message(&ctx, CreateMessage::new().content(message))
-                .await
-            {
-                log::warn!("Could not send message to Discord: {}", why);
+                if let Err(why) = user_id
+                    .direct_message(&ctx, CreateMessage::new().content(message))
+                    .await
+                {
+                    log::warn!("Could not send message to Discord: {}", why);
+                }
             }
+
         }
     }
 
     async fn resolve_offline(&self, ctx: &Context, presence: Presence) {
-        if let Some(entry) = self.fetch_from_register(presence.user.id.into()).await {
+        if let Some(entrys) = self.fetch_from_register(presence.user.id.into()).await {
             log::info!("A bot went offline!");
-            let user_id = UserId::new(entry.user_id);
-            let bot_id = UserId::new(entry.bot_id);
-            let bot_name = if let Some(bot) = user_from_id(ctx, bot_id.into()).await {
-                bot.name
-            } else {
-                String::from("Placeholder Name")
-            };
+            for entry in entrys {
+                let user_id = UserId::new(entry.user_id);
+                let bot_id = UserId::new(entry.bot_id);
+                let bot_name = if let Some(bot) = user_from_id(ctx, bot_id.into()).await {
+                    bot.name
+                } else {
+                    String::from("Placeholder Name")
+                };
 
-            let message = MessageBuilder::new()
-                .push("Hello, ")
-                .mention(&user_id)
-                .push(format!(" Your bot named '{bot_name}': "))
-                .mention(&bot_id)
-                .push(" has gone offline!")
-                .build();
+                let message = MessageBuilder::new()
+                    .push("Hello, ")
+                    .mention(&user_id)
+                    .push(format!(" Your bot named '{bot_name}': "))
+                    .mention(&bot_id)
+                    .push(" has gone offline!")
+                    .build();
 
-            if let Err(why) = user_id
-                .direct_message(&ctx, CreateMessage::new().content(message))
-                .await
-            {
-                log::warn!("Could not send message to Discord: {}", why);
+                if let Err(why) = user_id
+                    .direct_message(&ctx, CreateMessage::new().content(message))
+                    .await
+                {
+                    log::warn!("Could not send message to Discord: {}", why);
+                }
             }
         }
     }

@@ -13,10 +13,10 @@ impl LocalRegister {
 
 #[async_trait]
 impl Register for LocalRegister {
-    async fn fetch(&self, bot_id: u64) -> Option<RegisterEntry> {
+    async fn fetch(&self, bot_id: u64) -> Option<Vec<RegisterEntry>> {
         for entry in self.0.read().await.iter() {
             if entry.bot_id == bot_id {
-                return Some(entry.clone());
+                return Some(vec![entry.clone()]);
             }
         }
 

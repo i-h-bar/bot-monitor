@@ -42,10 +42,10 @@ where
             return;
         };
 
-        if !bot.bot {
-            messages::send_ephemeral(&ctx, &command, "This is to track bots not to spy on people")
-                .await;
-        }
+        // if !bot.bot {
+        //     messages::send_ephemeral(&ctx, &command, "This is to track bots not to spy on people")
+        //         .await;
+        // }
 
         let entry = RegisterEntry {
             bot_id: bot.id.into(),
