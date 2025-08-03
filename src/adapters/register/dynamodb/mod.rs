@@ -35,7 +35,7 @@ impl Register for DynamoDB {
 
         Some(results.into_iter().filter_map(| value | {
             let AttributeValue::S(user_id) = value.get("user_id")? else { return None };
-            
+
             Some(RegisterEntry {
                 user_id: u64::from_str(&user_id).ok()?,
                 bot_id
@@ -58,10 +58,42 @@ impl Register for DynamoDB {
     }
 
     async fn remove(&self, bot_id: u64, user_id: u64) -> Result<(), RegisterError> {
+        let user_id_attr_value = AttributeValue::S(user_id.to_string());
+        let bot_id_attr_value = AttributeValue::S(bot_id.to_string());
+
+        let query_op = self.0
+            .delete_item()
+            .table_name(&self.1)
+            .key("bot_id", bot_id_attr_value)
+            .key("user_id", user_id_attr_value)
+            .send()
+            .await;
+
         todo!()
     }
 
     async fn list(&self, user_id: u64) -> Result<Vec<RegisterEntry>, RegisterError> {
-        todo!()
+        let user_id_attr_value = AttributeValue::S(user_id.to_string());
+        let query_op = self.0
+            .query()
+            .table_name(&self.1)
+            .index_name("user_id-index")
+            .key_condition_expression("user_id = :value")
+            .expression_attribute_values(":value", user_id_attr_value).send()
+            .await;
+
+        let results = match query_op {
+            Err(e) => { log::error!("{:?}", e); return Err(RegisterError::EntryFetchError); },
+            Ok(value)  => value.items.unwrap()
+        };
+
+        Ok(results.into_iter().filter_map(| value | {
+            let AttributeValue::S(bot_id) = value.get("bot_id")? else { return None };
+
+            Some(RegisterEntry {
+                user_id,
+                bot_id: u64::from_str(&bot_id).ok()?
+            })
+        }).collect())
     }
 }
