@@ -1,7 +1,6 @@
 mod logic;
 
 use async_trait::async_trait;
-use serenity::all::UserId;
 use thiserror::Error;
 
 #[derive(Debug, Clone)]
@@ -11,11 +10,14 @@ pub struct RegisterEntry {
 }
 
 #[derive(Error, Debug)]
+#[allow(clippy::enum_variant_names)]
 pub enum RegisterError {
     #[error("Could not create register entry")]
     EntryCreationError,
     #[error("Could not fetch register entry")]
     EntryFetchError,
+    #[error("Could not remove register entry")]
+    EntryRemoveError,
 }
 
 #[async_trait]

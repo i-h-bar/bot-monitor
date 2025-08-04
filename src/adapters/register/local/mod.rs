@@ -1,6 +1,5 @@
 use crate::domain::register::{Register, RegisterEntry, RegisterError};
 use async_trait::async_trait;
-use serenity::all::UserId;
 use tokio::sync::RwLock;
 
 pub struct LocalRegister(RwLock<Vec<RegisterEntry>>);
@@ -31,10 +30,8 @@ impl Register for LocalRegister {
 
     async fn remove(&self, bot_id: u64, user_id: u64) -> Result<(), RegisterError> {
         let mut index: Option<usize> = None;
-        log::info!("removing bot {}", bot_id);
         for (i, entry) in self.0.read().await.iter().enumerate() {
             if entry.bot_id == bot_id && entry.user_id == user_id {
-                log::info!("found in index {}", i);
                 index = Some(i);
             }
         }

@@ -28,7 +28,7 @@ where
 
         match presence.status {
             OnlineStatus::Offline | OnlineStatus::Invisible => {
-                self.resolve_offline(&ctx, presence).await
+                self.resolve_offline(&ctx, presence).await;
             }
             OnlineStatus::Online => self.resolve_online(&ctx, presence).await,
             _ => {}
@@ -61,10 +61,9 @@ where
                     .direct_message(&ctx, CreateMessage::new().content(message))
                     .await
                 {
-                    log::warn!("Could not send message to Discord: {}", why);
+                    log::warn!("Could not send message to Discord: {why}");
                 }
             }
-
         }
     }
 
@@ -92,7 +91,7 @@ where
                     .direct_message(&ctx, CreateMessage::new().content(message))
                     .await
                 {
-                    log::warn!("Could not send message to Discord: {}", why);
+                    log::warn!("Could not send message to Discord: {why}");
                 }
             }
         }

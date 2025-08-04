@@ -10,6 +10,6 @@ pub async fn send_ephemeral(ctx: &Context, command: &CommandInteraction, message
         .create_response(ctx, CreateInteractionResponse::Message(response))
         .await
     {
-        log::warn!("Error sending message: {:?}", why);
+        log::warn!("Error sending message: {why:?}");
     }
 }

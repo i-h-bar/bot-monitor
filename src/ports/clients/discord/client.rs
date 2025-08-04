@@ -1,22 +1,17 @@
 use crate::domain::app::App;
-use crate::domain::register::{Register, RegisterEntry};
+use crate::domain::register::Register;
 use crate::ports::clients::Client;
 use crate::ports::clients::discord::commands::{add, list, remove};
 use async_trait::async_trait;
-use chrono::{DateTime, Utc};
 use serenity::Client as SerenityClient;
-use serenity::all::{
-    Command, Context, CreateInteractionResponse, CreateInteractionResponseMessage, CreateMessage,
-    GatewayIntents, GuildMemberUpdateEvent, Interaction, Member, MessageBuilder, OnlineStatus,
-    Presence, Ready, ResolvedValue, User, UserId,
-};
+use serenity::all::{Command, Context, GatewayIntents, Interaction, Presence, Ready};
 use serenity::client::EventHandler;
 use std::env;
-use uuid::Uuid;
 
 pub struct DiscordClient(SerenityClient);
 
 impl DiscordClient {
+    #[allow(clippy::missing_panics_doc)]
     pub async fn new<R: Register + Send + Sync + 'static>(app: App<R>) -> Self {
         let token = env::var("BOT_TOKEN").expect("Bot token wasn't in env vars");
         let intents = GatewayIntents::DIRECT_MESSAGES
@@ -48,19 +43,19 @@ where
 {
     async fn ready(&self, ctx: Context, _: Ready) {
         if let Err(err) = Command::create_global_command(&ctx, add::register()).await {
-            log::warn!("Could not create command {:?}", err);
+            log::warn!("Could not create command {err:?}");
         } else {
             log::info!("Created add command");
         }
 
         if let Err(err) = Command::create_global_command(&ctx, remove::register()).await {
-            log::warn!("Could not create command {:?}", err);
+            log::warn!("Could not create command {err:?}");
         } else {
             log::info!("Created remove command");
         }
 
         if let Err(err) = Command::create_global_command(&ctx, list::register()).await {
-            log::warn!("Could not create command {:?}", err);
+            log::warn!("Could not create command {err:?}");
         } else {
             log::info!("Created list command");
         }

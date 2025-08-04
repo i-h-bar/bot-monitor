@@ -1,9 +1,9 @@
 use crate::domain::app::App;
-use crate::domain::register::{Register, RegisterError};
+use crate::domain::register::Register;
 use crate::ports::clients::discord::utils::messages;
 use serenity::all::{
     CommandInteraction, CommandOptionType, Context, CreateCommand, CreateCommandOption,
-    CreateInteractionResponse, CreateInteractionResponseMessage, ResolvedValue, User,
+    ResolvedValue, User,
 };
 
 pub fn register() -> CreateCommand {
@@ -28,34 +28,31 @@ where
         let mut bot: Option<&User> = None;
 
         for option in options {
-            match option.name {
-                "bot" => match option.value {
-                    ResolvedValue::User(user, ..) => bot = Some(user),
-                    _ => {}
-                },
-                _ => {}
+            if option.name == "bot"
+                && let ResolvedValue::User(user, ..) = option.value
+            {
+                bot = Some(user);
             }
         }
 
         let Some(bot) = bot else {
-            messages::send_ephemeral(&ctx, &command, "Failed to remove bot from the register")
-                .await;
+            messages::send_ephemeral(ctx, &command, "Failed to remove bot from the register").await;
             return;
         };
 
-        if let Err(_) = self
+        if self
             .remove_from_register(bot.id.into(), command.user.id.into())
             .await
+            .is_err()
         {
-            messages::send_ephemeral(&ctx, &command, "Failed to remove bot from the register")
-                .await;
+            messages::send_ephemeral(ctx, &command, "Failed to remove bot from the register").await;
             return;
-        };
+        }
 
         let message = format!(
             "I have removed {} from the register. I will no longer DM you when the bot goes offline or comes online",
             bot.name
         );
-        messages::send_ephemeral(&ctx, &command, &message).await;
+        messages::send_ephemeral(ctx, &command, &message).await;
     }
 }

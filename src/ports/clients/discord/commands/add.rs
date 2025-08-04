@@ -2,8 +2,8 @@ use crate::domain::app::App;
 use crate::domain::register::{Register, RegisterEntry};
 use crate::ports::clients::discord::utils::messages;
 use serenity::all::{
-    Command, CommandInteraction, CommandOptionType, Context, CreateCommand, CreateCommandOption,
-    CreateInteractionResponse, CreateInteractionResponseMessage, ResolvedValue, User,
+    CommandInteraction, CommandOptionType, Context, CreateCommand, CreateCommandOption,
+    ResolvedValue, User,
 };
 
 pub fn register() -> CreateCommand {
@@ -28,17 +28,15 @@ where
         let mut bot: Option<&User> = None;
 
         for option in options {
-            match option.name {
-                "bot" => match option.value {
-                    ResolvedValue::User(user, ..) => bot = Some(user),
-                    _ => {}
-                },
-                _ => {}
+            if option.name == "bot"
+                && let ResolvedValue::User(user, ..) = option.value
+            {
+                bot = Some(user);
             }
         }
 
         let Some(bot) = bot else {
-            messages::send_ephemeral(&ctx, &command, "Failed to add bot to register").await;
+            messages::send_ephemeral(ctx, &command, "Failed to add bot to register").await;
             return;
         };
 
@@ -52,14 +50,14 @@ where
             user_id: command.user.id.into(),
         };
 
-        if let Err(_) = self.add_to_register(entry).await {
-            messages::send_ephemeral(&ctx, &command, "Failed to add bot to register").await;
-        };
+        if self.add_to_register(entry).await.is_err() {
+            messages::send_ephemeral(ctx, &command, "Failed to add bot to register").await;
+        }
 
         let message = format!(
             "Added to {} to the register. I will now DM you when it goes offline and when it comes online.",
             bot.name
         );
-        messages::send_ephemeral(&ctx, &command, &message).await;
+        messages::send_ephemeral(ctx, &command, &message).await;
     }
 }
