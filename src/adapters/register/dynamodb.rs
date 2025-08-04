@@ -83,7 +83,6 @@ impl Register for DynamoDB {
             .delete_item()
             .table_name(&self.1)
             .key("bot_id", bot_id_attr_value)
-            .key("user_id", user_id_attr_value)
             .send()
             .await;
 
