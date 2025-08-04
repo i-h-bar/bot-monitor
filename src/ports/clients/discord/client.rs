@@ -41,6 +41,9 @@ impl<R> EventHandler for App<R>
 where
     R: Register + Send + Sync,
 {
+    async fn presence_update(&self, ctx: Context, presence: Presence) {
+        self.resolve_update(ctx, presence).await;
+    }
     async fn ready(&self, ctx: Context, _: Ready) {
         if let Err(err) = Command::create_global_command(&ctx, add::register()).await {
             log::warn!("Could not create command {err:?}");
@@ -62,6 +65,7 @@ where
 
         log::info!("Bot is ready");
     }
+
     async fn interaction_create(&self, ctx: Context, interaction: Interaction) {
         if let Interaction::Command(command) = interaction {
             if command.user.bot {
@@ -77,9 +81,5 @@ where
                 _ => {}
             }
         }
-    }
-
-    async fn presence_update(&self, ctx: Context, presence: Presence) {
-        self.resolve_update(ctx, presence).await;
     }
 }
