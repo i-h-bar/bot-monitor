@@ -25,13 +25,13 @@ where
             match event.status() {
                 EventStatus::Offline => {
                     log::info!("A bot went offline!");
-                    event.send_offline_warning(entries).await
+                    event.send_offline_warning(entries).await;
                 }
                 EventStatus::Online => {
                     log::info!("A bot came back online!");
-                    event.send_online_message(entries).await
+                    event.send_online_message(entries).await;
                 }
-                _ => {}
+                EventStatus::NA => {}
             }
         }
     }

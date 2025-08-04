@@ -1,4 +1,4 @@
-use crate::domain::register::create_entry::{CreateEntry, CreateEntryEvent};
+use crate::domain::register::events::create::{CreateEntry, CreateEntryEvent};
 use crate::ports::clients::discord::utils::messages;
 use async_trait::async_trait;
 use serenity::all::{
@@ -52,7 +52,7 @@ impl DiscordCreateEvent {
 
 #[async_trait]
 impl CreateEntryEvent for DiscordCreateEvent {
-    async fn entry(&self) -> CreateEntry {
+    fn entry(&self) -> CreateEntry {
         CreateEntry {
             user_id: self.user().id.to_string(),
             bot_id: self.bot.id.to_string(),
@@ -60,7 +60,7 @@ impl CreateEntryEvent for DiscordCreateEvent {
         }
     }
 
-    async fn is_bot(&self) -> bool {
+    fn is_bot(&self) -> bool {
         self.bot.bot
     }
 

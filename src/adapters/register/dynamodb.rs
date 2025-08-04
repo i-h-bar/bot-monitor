@@ -1,9 +1,10 @@
+use crate::domain::register::events::create::CreateEntry;
+use crate::domain::register::events::remove::RemoveEntry;
 use crate::domain::register::{Register, RegisterEntry, RegisterError};
 use async_trait::async_trait;
 use aws_sdk_dynamodb::Client;
 use aws_sdk_dynamodb::types::AttributeValue;
 use std::env;
-use crate::domain::register::create_entry::CreateEntry;
 
 pub struct DynamoDB(Client, String);
 
@@ -73,9 +74,9 @@ impl Register for DynamoDB {
         Ok(())
     }
 
-    async fn remove(&self, bot_id: String, user_id: String) -> Result<(), RegisterError> {
-        let user_id_attr_value = AttributeValue::S(user_id);
-        let bot_id_attr_value = AttributeValue::S(bot_id);
+    async fn remove(&self, entry: RemoveEntry) -> Result<(), RegisterError> {
+        let user_id_attr_value = AttributeValue::S(entry.user_id);
+        let bot_id_attr_value = AttributeValue::S(entry.bot_id);
 
         let query_op = self
             .0

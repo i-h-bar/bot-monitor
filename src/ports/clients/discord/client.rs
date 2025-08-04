@@ -1,6 +1,8 @@
 use crate::domain::app::App;
 use crate::domain::register::Register;
 use crate::ports::clients::Client;
+use crate::ports::clients::discord::commands::add::DiscordCreateEvent;
+use crate::ports::clients::discord::commands::remove::RemoveDiscordEvent;
 use crate::ports::clients::discord::commands::{add, list, remove};
 use crate::ports::clients::discord::event::DiscordStatusEvent;
 use async_trait::async_trait;
@@ -8,7 +10,6 @@ use serenity::Client as SerenityClient;
 use serenity::all::{Command, Context, GatewayIntents, Interaction, Presence, Ready};
 use serenity::client::EventHandler;
 use std::env;
-use crate::ports::clients::discord::commands::add::DiscordCreateEvent;
 
 pub struct DiscordClient(SerenityClient);
 
@@ -81,7 +82,11 @@ where
                         self.add_to_register(event).await;
                     }
                 }
-                "remove" => self.remove_command(&ctx, command).await,
+                "remove" => {
+                    if let Some(event) = RemoveDiscordEvent::new(ctx, command) {
+                        self.remove_from_register(event).await;
+                    }
+                }
                 "list" => self.list_command(&ctx, command).await,
                 _ => {}
             }

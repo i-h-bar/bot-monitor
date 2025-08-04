@@ -9,14 +9,6 @@ where
         self.register.fetch(bot_id).await
     }
 
-    pub async fn remove_from_register(
-        &self,
-        bot_id: String,
-        user_id: String,
-    ) -> Result<(), RegisterError> {
-        self.register.remove(bot_id, user_id).await
-    }
-
     pub async fn list_user_entries(
         &self,
         user_id: String,
@@ -28,10 +20,11 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::domain::register::events::create::CreateEntry;
+    use crate::domain::register::events::remove::RemoveEntry;
     use crate::domain::register::{Register, RegisterEntry, RegisterError};
     use async_trait::async_trait;
     use tokio::sync::RwLock;
-    use crate::domain::register::create_entry::CreateEntry;
 
     pub struct LocalRegister(RwLock<Vec<RegisterEntry>>);
 
@@ -54,15 +47,18 @@ mod tests {
         }
 
         async fn add(&self, entry: CreateEntry) -> Result<(), RegisterError> {
-            self.0.write().await.push(RegisterEntry{ bot_id: entry.bot_id, user_id: entry.user_id });
+            self.0.write().await.push(RegisterEntry {
+                bot_id: entry.bot_id,
+                user_id: entry.user_id,
+            });
             log::info!("{:?}", self.0.read().await);
             Ok(())
         }
 
-        async fn remove(&self, bot_id: String, user_id: String) -> Result<(), RegisterError> {
+        async fn remove(&self, entry: RemoveEntry) -> Result<(), RegisterError> {
             let mut index: Option<usize> = None;
             for (i, entry) in self.0.read().await.iter().enumerate() {
-                if entry.bot_id == bot_id && entry.user_id == user_id {
+                if entry.bot_id == entry.bot_id && entry.user_id == entry.user_id {
                     index = Some(i);
                 }
             }
