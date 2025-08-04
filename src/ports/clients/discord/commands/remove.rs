@@ -41,7 +41,7 @@ where
         };
 
         if self
-            .remove_from_register(bot.id.into(), command.user.id.into())
+            .remove_from_register(bot.id.to_string(), command.user.id.to_string())
             .await
             .is_err()
         {

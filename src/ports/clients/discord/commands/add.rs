@@ -46,8 +46,8 @@ where
         // }
 
         let entry = RegisterEntry {
-            bot_id: bot.id.into(),
-            user_id: command.user.id.into(),
+            bot_id: bot.id.to_string(),
+            user_id: command.user.id.to_string(),
         };
 
         if self.add_to_register(entry).await.is_err() {

@@ -2,6 +2,7 @@ use crate::domain::app::App;
 use crate::domain::register::Register;
 use crate::ports::clients::Client;
 use crate::ports::clients::discord::commands::{add, list, remove};
+use crate::ports::clients::discord::event::DiscordStatusEvent;
 use async_trait::async_trait;
 use serenity::Client as SerenityClient;
 use serenity::all::{Command, Context, GatewayIntents, Interaction, Presence, Ready};
@@ -42,7 +43,8 @@ where
     R: Register + Send + Sync,
 {
     async fn presence_update(&self, ctx: Context, presence: Presence) {
-        self.resolve_update(ctx, presence).await;
+        let event = DiscordStatusEvent::new(ctx, presence);
+        self.resolve_event(event).await;
     }
     async fn ready(&self, ctx: Context, _: Ready) {
         if let Err(err) = Command::create_global_command(&ctx, add::register()).await {

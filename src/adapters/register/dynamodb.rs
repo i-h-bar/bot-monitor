@@ -3,7 +3,6 @@ use async_trait::async_trait;
 use aws_sdk_dynamodb::Client;
 use aws_sdk_dynamodb::types::AttributeValue;
 use std::env;
-use std::str::FromStr;
 
 pub struct DynamoDB(Client, String);
 
@@ -16,8 +15,8 @@ impl DynamoDB {
 
 #[async_trait]
 impl Register for DynamoDB {
-    async fn fetch(&self, bot_id: u64) -> Option<Vec<RegisterEntry>> {
-        let bot_id_attr_value = AttributeValue::S(bot_id.to_string());
+    async fn fetch(&self, bot_id: String) -> Option<Vec<RegisterEntry>> {
+        let bot_id_attr_value = AttributeValue::S(bot_id.clone());
         let query_op = self
             .0
             .query()
@@ -44,8 +43,8 @@ impl Register for DynamoDB {
                     };
 
                     Some(RegisterEntry {
-                        user_id: u64::from_str(user_id).ok()?,
-                        bot_id,
+                        user_id: user_id.clone(),
+                        bot_id: bot_id.clone(),
                     })
                 })
                 .collect(),
@@ -71,9 +70,9 @@ impl Register for DynamoDB {
         Ok(())
     }
 
-    async fn remove(&self, bot_id: u64, user_id: u64) -> Result<(), RegisterError> {
-        let user_id_attr_value = AttributeValue::S(user_id.to_string());
-        let bot_id_attr_value = AttributeValue::S(bot_id.to_string());
+    async fn remove(&self, bot_id: String, user_id: String) -> Result<(), RegisterError> {
+        let user_id_attr_value = AttributeValue::S(user_id);
+        let bot_id_attr_value = AttributeValue::S(bot_id);
 
         let query_op = self
             .0
@@ -92,8 +91,8 @@ impl Register for DynamoDB {
         Ok(())
     }
 
-    async fn list(&self, user_id: u64) -> Result<Vec<RegisterEntry>, RegisterError> {
-        let user_id_attr_value = AttributeValue::S(user_id.to_string());
+    async fn list(&self, user_id: String) -> Result<Vec<RegisterEntry>, RegisterError> {
+        let user_id_attr_value = AttributeValue::S(user_id.clone());
         let query_op = self
             .0
             .query()
@@ -120,8 +119,8 @@ impl Register for DynamoDB {
                 };
 
                 Some(RegisterEntry {
-                    user_id,
-                    bot_id: u64::from_str(bot_id).ok()?,
+                    user_id: user_id.clone(),
+                    bot_id: bot_id.clone(),
                 })
             })
             .collect())

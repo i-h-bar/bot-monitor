@@ -5,8 +5,8 @@ use thiserror::Error;
 
 #[derive(Debug, Clone)]
 pub struct RegisterEntry {
-    pub bot_id: u64,
-    pub user_id: u64,
+    pub bot_id: String,
+    pub user_id: String,
 }
 
 #[derive(Error, Debug)]
@@ -22,8 +22,8 @@ pub enum RegisterError {
 
 #[async_trait]
 pub trait Register {
-    async fn fetch(&self, bot_id: u64) -> Option<Vec<RegisterEntry>>;
+    async fn fetch(&self, bot_id: String) -> Option<Vec<RegisterEntry>>;
     async fn add(&self, entry: RegisterEntry) -> Result<(), RegisterError>;
-    async fn remove(&self, bot_id: u64, user_id: u64) -> Result<(), RegisterError>;
-    async fn list(&self, user_id: u64) -> Result<Vec<RegisterEntry>, RegisterError>;
+    async fn remove(&self, bot_id: String, user_id: String) -> Result<(), RegisterError>;
+    async fn list(&self, user_id: String) -> Result<Vec<RegisterEntry>, RegisterError>;
 }

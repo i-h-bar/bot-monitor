@@ -3,6 +3,7 @@ use crate::domain::register::Register;
 use crate::ports::clients::discord::utils::messages;
 use crate::ports::clients::discord::utils::user::user_from_id;
 use serenity::all::{CommandInteraction, Context, CreateCommand, MessageBuilder};
+use std::str::FromStr;
 
 pub fn register() -> CreateCommand {
     CreateCommand::new("list").description("List all the warnings you currently have active")
@@ -13,7 +14,7 @@ where
     R: Register,
 {
     pub async fn list_command(&self, ctx: &Context, command: CommandInteraction) {
-        let Ok(entries) = self.list_user_entries(command.user.id.into()).await else {
+        let Ok(entries) = self.list_user_entries(command.user.id.to_string()).await else {
             messages::send_ephemeral(ctx, &command, "Failed to list your entries :(").await;
             return;
         };
@@ -26,7 +27,7 @@ where
         let mut message_builder = MessageBuilder::new();
         message_builder.push("Current Warnings:");
         for entry in entries {
-            let Some(bot) = user_from_id(ctx, entry.bot_id).await else {
+            let Some(bot) = user_from_id(ctx, u64::from_str(&entry.bot_id).unwrap()).await else {
                 continue;
             };
             message_builder
