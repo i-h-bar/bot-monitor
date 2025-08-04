@@ -6,7 +6,7 @@ use crate::domain::register::Register;
 pub struct CreateEntry {
     pub user_id: String,
     pub bot_id: String,
-    pub entry_version: usize,
+    pub version: usize,
 }
 
 #[async_trait]

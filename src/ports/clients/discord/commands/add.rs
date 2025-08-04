@@ -56,7 +56,7 @@ impl CreateEntryEvent for DiscordCreateEvent {
         CreateEntry {
             user_id: self.user().id.to_string(),
             bot_id: self.bot.id.to_string(),
-            entry_version: 0,
+            version: 0,
         }
     }
 

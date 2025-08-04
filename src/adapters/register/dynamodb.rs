@@ -55,13 +55,15 @@ impl Register for DynamoDB {
     async fn add(&self, entry: CreateEntry) -> Result<(), RegisterError> {
         let user_id = AttributeValue::S(entry.user_id);
         let bot_id = AttributeValue::S(entry.bot_id);
+        let entry_version = AttributeValue::S(entry.version.to_string());
 
         let request = self
             .0
             .put_item()
             .table_name(&self.1)
             .item("bot_id", bot_id)
-            .item("user_id", user_id);
+            .item("user_id", user_id)
+            .item("entry_version", entry_version);
 
         if let Err(why) = request.send().await {
             log::error!("failed to send add request: {why:?}");
