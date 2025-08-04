@@ -3,6 +3,7 @@ use async_trait::async_trait;
 use aws_sdk_dynamodb::Client;
 use aws_sdk_dynamodb::types::AttributeValue;
 use std::env;
+use crate::domain::register::create_entry::CreateEntry;
 
 pub struct DynamoDB(Client, String);
 
@@ -51,9 +52,9 @@ impl Register for DynamoDB {
         )
     }
 
-    async fn add(&self, entry: RegisterEntry) -> Result<(), RegisterError> {
-        let user_id = AttributeValue::S(entry.user_id.to_string());
-        let bot_id = AttributeValue::S(entry.bot_id.to_string());
+    async fn add(&self, entry: CreateEntry) -> Result<(), RegisterError> {
+        let user_id = AttributeValue::S(entry.user_id);
+        let bot_id = AttributeValue::S(entry.bot_id);
 
         let request = self
             .0

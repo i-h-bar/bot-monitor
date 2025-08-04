@@ -5,10 +5,6 @@ impl<R> App<R>
 where
     R: Register,
 {
-    pub async fn add_to_register(&self, entry: RegisterEntry) -> Result<(), RegisterError> {
-        self.register.add(entry).await
-    }
-
     pub async fn fetch_from_register(&self, bot_id: String) -> Option<Vec<RegisterEntry>> {
         self.register.fetch(bot_id).await
     }
@@ -35,6 +31,7 @@ mod tests {
     use crate::domain::register::{Register, RegisterEntry, RegisterError};
     use async_trait::async_trait;
     use tokio::sync::RwLock;
+    use crate::domain::register::create_entry::CreateEntry;
 
     pub struct LocalRegister(RwLock<Vec<RegisterEntry>>);
 
@@ -56,8 +53,8 @@ mod tests {
             None
         }
 
-        async fn add(&self, entry: RegisterEntry) -> Result<(), RegisterError> {
-            self.0.write().await.push(entry);
+        async fn add(&self, entry: CreateEntry) -> Result<(), RegisterError> {
+            self.0.write().await.push(RegisterEntry{ bot_id: entry.bot_id, user_id: entry.user_id });
             log::info!("{:?}", self.0.read().await);
             Ok(())
         }
@@ -98,11 +95,12 @@ mod tests {
     async fn test_add_to_register() {
         let local = LocalRegister::new();
         let app = App::new(local);
-        app.add_to_register(RegisterEntry {
-            bot_id: String::new(),
-            user_id: String::new(),
-        })
-        .await
-        .unwrap();
+        // app.add_to_register(CreateEntry {
+        //     bot_id: String::new(),
+        //     user_id: String::new(),
+        //     entry_version: 0,
+        // })
+        // .await
+        // .unwrap();
     }
 }

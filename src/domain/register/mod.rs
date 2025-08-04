@@ -1,7 +1,9 @@
 mod logic;
+pub mod create_entry;
 
 use async_trait::async_trait;
 use thiserror::Error;
+use crate::domain::register::create_entry::CreateEntry;
 
 #[derive(Debug, Clone)]
 pub struct RegisterEntry {
@@ -23,7 +25,7 @@ pub enum RegisterError {
 #[async_trait]
 pub trait Register {
     async fn fetch(&self, bot_id: String) -> Option<Vec<RegisterEntry>>;
-    async fn add(&self, entry: RegisterEntry) -> Result<(), RegisterError>;
+    async fn add(&self, entry: CreateEntry) -> Result<(), RegisterError>;
     async fn remove(&self, bot_id: String, user_id: String) -> Result<(), RegisterError>;
     async fn list(&self, user_id: String) -> Result<Vec<RegisterEntry>, RegisterError>;
 }

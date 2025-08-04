@@ -8,6 +8,7 @@ use serenity::Client as SerenityClient;
 use serenity::all::{Command, Context, GatewayIntents, Interaction, Presence, Ready};
 use serenity::client::EventHandler;
 use std::env;
+use crate::ports::clients::discord::commands::add::DiscordCreateEvent;
 
 pub struct DiscordClient(SerenityClient);
 
@@ -76,7 +77,9 @@ where
 
             match command.data.name.as_str() {
                 "add" => {
-                    self.add_command(&ctx, command).await;
+                    if let Some(event) = DiscordCreateEvent::new(ctx, command) {
+                        self.add_to_register(event).await;
+                    }
                 }
                 "remove" => self.remove_command(&ctx, command).await,
                 "list" => self.list_command(&ctx, command).await,
