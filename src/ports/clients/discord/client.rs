@@ -2,6 +2,7 @@ use crate::domain::app::App;
 use crate::domain::register::Register;
 use crate::ports::clients::Client;
 use crate::ports::clients::discord::commands::add::DiscordCreateEvent;
+use crate::ports::clients::discord::commands::list::DiscordListEvent;
 use crate::ports::clients::discord::commands::remove::RemoveDiscordEvent;
 use crate::ports::clients::discord::commands::{add, list, remove};
 use crate::ports::clients::discord::event::DiscordStatusEvent;
@@ -87,7 +88,10 @@ where
                         self.remove_from_register(event).await;
                     }
                 }
-                "list" => self.list_command(&ctx, command).await,
+                "list" => {
+                    let event = DiscordListEvent::new(ctx, command);
+                    self.list_entries(event).await;
+                }
                 _ => {}
             }
         }

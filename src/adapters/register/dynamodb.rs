@@ -75,7 +75,6 @@ impl Register for DynamoDB {
     }
 
     async fn remove(&self, entry: RemoveEntry) -> Result<(), RegisterError> {
-        let user_id_attr_value = AttributeValue::S(entry.user_id);
         let bot_id_attr_value = AttributeValue::S(entry.bot_id);
 
         let query_op = self

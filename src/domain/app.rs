@@ -21,7 +21,7 @@ where
             return;
         }
 
-        if let Some(entries) = self.fetch_from_register(event.bot_id().to_string()).await {
+        if let Some(entries) = self.register.fetch(event.bot_id().to_string()).await {
             match event.status() {
                 EventStatus::Offline => {
                     log::info!("A bot went offline!");

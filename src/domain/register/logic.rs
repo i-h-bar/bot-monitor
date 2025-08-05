@@ -5,10 +5,6 @@ impl<R> App<R>
 where
     R: Register,
 {
-    pub async fn fetch_from_register(&self, bot_id: String) -> Option<Vec<RegisterEntry>> {
-        self.register.fetch(bot_id).await
-    }
-
     pub async fn list_user_entries(
         &self,
         user_id: String,
