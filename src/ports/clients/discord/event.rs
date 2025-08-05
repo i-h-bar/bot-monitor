@@ -1,5 +1,5 @@
 use crate::domain::register::RegisterEntry;
-use crate::domain::status_event::{EventStatus, StatusEvent};
+use crate::domain::events::status::{BotStates, StatusEvent};
 use crate::ports::clients::discord::utils::user::user_from_id;
 use async_trait::async_trait;
 use serenity::all::{
@@ -29,11 +29,11 @@ impl StatusEvent for DiscordStatusEvent {
         self.bot.id.to_string()
     }
 
-    fn status(&self) -> EventStatus {
+    fn state(&self) -> BotStates {
         match self.status {
-            OnlineStatus::Online => EventStatus::Online,
-            OnlineStatus::Offline | OnlineStatus::Invisible => EventStatus::Offline,
-            _ => EventStatus::NA,
+            OnlineStatus::Online => BotStates::Online,
+            OnlineStatus::Offline | OnlineStatus::Invisible => BotStates::Offline,
+            _ => BotStates::NA,
         }
     }
 

@@ -1,7 +1,7 @@
 use crate::domain::register::RegisterEntry;
 use async_trait::async_trait;
 
-pub enum EventStatus {
+pub enum BotStates {
     Offline,
     Online,
     NA,
@@ -10,7 +10,7 @@ pub enum EventStatus {
 #[async_trait]
 pub trait StatusEvent {
     fn bot_id(&self) -> String;
-    fn status(&self) -> EventStatus;
+    fn state(&self) -> BotStates;
     async fn is_bot(&self) -> bool;
 
     async fn send_offline_warning(&self, entries: Vec<RegisterEntry>);

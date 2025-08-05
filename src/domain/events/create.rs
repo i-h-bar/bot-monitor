@@ -1,26 +1,50 @@
 use crate::domain::app::App;
-use crate::domain::register::{Register, RegisterEntry, RegisterError};
+use crate::domain::register::Register;
+use async_trait::async_trait;
+
+pub struct CreateEntry {
+    pub user_id: String,
+    pub bot_id: String,
+    pub version: usize,
+}
+
+#[async_trait]
+pub trait CreateEntryEvent {
+    fn entry(&self) -> CreateEntry;
+    fn is_bot(&self) -> bool;
+    async fn not_a_bot_message(&self);
+    async fn entry_added_message(&self);
+    async fn failed_message(&self);
+}
 
 impl<R> App<R>
 where
     R: Register,
 {
-    pub async fn list_user_entries(
-        &self,
-        user_id: String,
-    ) -> Result<Vec<RegisterEntry>, RegisterError> {
-        self.register.list(user_id).await
+    pub async fn add_to_register<E: CreateEntryEvent>(&self, event: E) {
+        if !event.is_bot() {
+            event.not_a_bot_message().await;
+            return;
+        }
+
+        if let Err(why) = self.register.add(event.entry()).await {
+            log::warn!("Failed to add new entry - {why:?}");
+            event.failed_message().await;
+        } else {
+            log::info!("Added new entry");
+            event.entry_added_message().await;
+        }
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::domain::register::events::create::CreateEntry;
-    use crate::domain::register::events::remove::RemoveEntry;
     use crate::domain::register::{Register, RegisterEntry, RegisterError};
     use async_trait::async_trait;
     use tokio::sync::RwLock;
+    use crate::domain::events::list::ListEntriesPayload;
+    use crate::domain::events::remove::RemoveEntry;
 
     pub struct LocalRegister(RwLock<Vec<RegisterEntry>>);
 
@@ -66,14 +90,14 @@ mod tests {
             Ok(())
         }
 
-        async fn list(&self, user_id: String) -> Result<Vec<RegisterEntry>, RegisterError> {
+        async fn list(&self, entry: ListEntriesPayload) -> Result<Vec<RegisterEntry>, RegisterError> {
             Ok(self
                 .0
                 .read()
                 .await
                 .iter()
                 .filter_map(|entry| {
-                    if entry.user_id == user_id {
+                    if entry.user_id == entry.user_id {
                         Some(entry.clone())
                     } else {
                         None

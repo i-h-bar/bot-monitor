@@ -1,10 +1,11 @@
-use crate::domain::register::events::create::CreateEntry;
-use crate::domain::register::events::remove::RemoveEntry;
 use crate::domain::register::{Register, RegisterEntry, RegisterError};
 use async_trait::async_trait;
 use aws_sdk_dynamodb::Client;
 use aws_sdk_dynamodb::types::AttributeValue;
 use std::env;
+use crate::domain::events::create::CreateEntry;
+use crate::domain::events::list::ListEntriesPayload;
+use crate::domain::events::remove::RemoveEntry;
 
 pub struct DynamoDB(Client, String);
 
@@ -93,8 +94,8 @@ impl Register for DynamoDB {
         Ok(())
     }
 
-    async fn list(&self, user_id: String) -> Result<Vec<RegisterEntry>, RegisterError> {
-        let user_id_attr_value = AttributeValue::S(user_id.clone());
+    async fn list(&self, entry: ListEntriesPayload) -> Result<Vec<RegisterEntry>, RegisterError> {
+        let user_id_attr_value = AttributeValue::S(entry.user_id.clone());
         let query_op = self
             .0
             .query()
@@ -121,7 +122,7 @@ impl Register for DynamoDB {
                 };
 
                 Some(RegisterEntry {
-                    user_id: user_id.clone(),
+                    user_id: entry.user_id.clone(),
                     bot_id: bot_id.clone(),
                 })
             })

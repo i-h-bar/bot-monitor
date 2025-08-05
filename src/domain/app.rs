@@ -1,5 +1,5 @@
 use crate::domain::register::Register;
-use crate::domain::status_event::{EventStatus, StatusEvent};
+use crate::domain::events::status::{BotStates, StatusEvent};
 
 pub struct App<R>
 where
@@ -22,16 +22,16 @@ where
         }
 
         if let Some(entries) = self.register.fetch(event.bot_id().to_string()).await {
-            match event.status() {
-                EventStatus::Offline => {
+            match event.state() {
+                BotStates::Offline => {
                     log::info!("A bot went offline!");
                     event.send_offline_warning(entries).await;
                 }
-                EventStatus::Online => {
+                BotStates::Online => {
                     log::info!("A bot came back online!");
                     event.send_online_message(entries).await;
                 }
-                EventStatus::NA => {}
+                BotStates::NA => {}
             }
         }
     }

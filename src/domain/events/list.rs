@@ -19,7 +19,7 @@ where
     R: Register,
 {
     pub async fn list_entries<L: ListEvent>(&self, event: L) {
-        let entries = match self.register.list(event.payload().user_id).await {
+        let entries = match self.register.list(event.payload()).await {
             Ok(entries) => entries,
             Err(why) => {
                 log::warn!("Failed to list entries in register: {why:?}");
