@@ -10,6 +10,6 @@ RUN cargo build --release
 
 FROM debian:bullseye-slim
 WORKDIR /app
-COPY --from=builder /app/target/release/register_bot /app/register_bot
+COPY --from=builder /app/target/release/register-bot /app/register-bot
 
-CMD ["/app/register_bot"]
+CMD ["/app/register-bot"]
