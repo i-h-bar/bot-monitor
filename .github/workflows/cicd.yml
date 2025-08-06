@@ -1,0 +1,29 @@
+name: Deploy The Bot
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Login to Docker Hub
+        run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+      - name: Build Image
+        run: docker build -t ${{ secrets.DOCKER_USERNAME }}/register-bot .
+      - name: Push Image
+        run: docker push ${{ secrets.DOCKER_USERNAME }}/register-bot:latest
+
+  deploy:
+    needs: build
+    runs-on: self-hosted
+    steps:
+      - name: Pull Image From Docker
+        run: docker pull ${{ secrets.DOCKER_USERNAME }}/register-bot:latest
+      - name: Delete Old Container
+        run: docker rm -f register-bot-container
+      - name: Run Docker Container
+        run: docker run -d --name register-bot-container -e BOT_TOKEN='${{ secrets.BOT_TOKEN }}' -e TABLE_NAME='${{ secrets.TABLE_NAME }}' ${{ secrets.DOCKER_USERNAME }}/register-bot:latest
