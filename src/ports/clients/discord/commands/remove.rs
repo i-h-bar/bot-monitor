@@ -1,10 +1,10 @@
+use crate::domain::events::remove::{RemoveEntry, RemoveEvent};
 use crate::ports::clients::discord::utils::messages;
 use async_trait::async_trait;
 use serenity::all::{
     CommandInteraction, CommandOptionType, Context, CreateCommand, CreateCommandOption,
-    ResolvedValue, User,
+    Permissions, ResolvedValue, User,
 };
-use crate::domain::events::remove::{RemoveEntry, RemoveEvent};
 
 pub fn register() -> CreateCommand {
     CreateCommand::new("remove")
@@ -17,6 +17,7 @@ pub fn register() -> CreateCommand {
             )
             .required(true),
         )
+        .default_member_permissions(Permissions::ADMINISTRATOR)
 }
 
 pub struct RemoveDiscordEvent {

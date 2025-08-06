@@ -1,14 +1,18 @@
+use crate::domain::events::list::{ListEntriesPayload, ListEvent};
 use crate::domain::register::RegisterEntry;
 use crate::ports::clients::discord::utils::messages;
 use crate::ports::clients::discord::utils::user::user_from_id;
 use async_trait::async_trait;
-use serenity::all::{CommandInteraction, Context, CreateCommand, MessageBuilder, User};
+use serenity::all::{
+    CommandInteraction, Context, CreateCommand, MessageBuilder, Permissions, User,
+};
 use serenity::futures::future::join_all;
 use std::str::FromStr;
-use crate::domain::events::list::{ListEntriesPayload, ListEvent};
 
 pub fn register() -> CreateCommand {
-    CreateCommand::new("list").description("List all the warnings you currently have active")
+    CreateCommand::new("list")
+        .description("List all the warnings you currently have active")
+        .default_member_permissions(Permissions::ADMINISTRATOR)
 }
 
 pub struct DiscordListEvent {

@@ -1,8 +1,8 @@
+use crate::domain::events::create::CreateEntry;
+use crate::domain::events::list::ListEntriesPayload;
 use crate::domain::events::remove::RemoveEntry;
 use async_trait::async_trait;
-use crate::domain::events::create::CreateEntry;
 use thiserror::Error;
-use crate::domain::events::list::ListEntriesPayload;
 
 #[derive(Debug, Clone)]
 pub struct RegisterEntry {
@@ -28,4 +28,3 @@ pub trait Register {
     async fn remove(&self, entry: RemoveEntry) -> Result<(), RegisterError>;
     async fn list(&self, entry: ListEntriesPayload) -> Result<Vec<RegisterEntry>, RegisterError>;
 }
-

@@ -2,9 +2,10 @@ use crate::domain::app::App;
 use crate::domain::register::Register;
 use crate::ports::clients::Client;
 use crate::ports::clients::discord::commands::add::DiscordCreateEvent;
+use crate::ports::clients::discord::commands::help::DiscordHelpEvent;
 use crate::ports::clients::discord::commands::list::DiscordListEvent;
 use crate::ports::clients::discord::commands::remove::RemoveDiscordEvent;
-use crate::ports::clients::discord::commands::{add, list, remove};
+use crate::ports::clients::discord::commands::{add, help, list, remove};
 use crate::ports::clients::discord::event::DiscordStatusEvent;
 use async_trait::async_trait;
 use serenity::Client as SerenityClient;
@@ -18,9 +19,7 @@ impl DiscordClient {
     #[allow(clippy::missing_panics_doc)]
     pub async fn new<R: Register + Send + Sync + 'static>(app: App<R>) -> Self {
         let token = env::var("BOT_TOKEN").expect("Bot token wasn't in env vars");
-        let intents = GatewayIntents::DIRECT_MESSAGES
-            | GatewayIntents::GUILD_PRESENCES
-            | GatewayIntents::DIRECT_MESSAGES;
+        let intents = GatewayIntents::DIRECT_MESSAGES | GatewayIntents::GUILD_PRESENCES;
 
         let client = SerenityClient::builder(&token, intents)
             .event_handler(app)
@@ -68,6 +67,12 @@ where
             log::info!("Created list command");
         }
 
+        if let Err(err) = Command::create_global_command(&ctx, help::register()).await {
+            log::warn!("Could not create command {err:?}");
+        } else {
+            log::info!("Created help command");
+        }
+
         log::info!("Bot is ready");
     }
 
@@ -91,6 +96,10 @@ where
                 "list" => {
                     let event = DiscordListEvent::new(ctx, command);
                     self.list_entries(event).await;
+                }
+                "help" => {
+                    let event = DiscordHelpEvent::new(ctx, command);
+                    self.send_help_message(event).await;
                 }
                 _ => {}
             }
