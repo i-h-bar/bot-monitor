@@ -1,5 +1,5 @@
-use crate::domain::register::RegisterEntry;
 use crate::domain::events::status::{BotStates, StatusEvent};
+use crate::domain::register::RegisterEntry;
 use crate::ports::clients::discord::utils::user::user_from_id;
 use async_trait::async_trait;
 use serenity::all::{

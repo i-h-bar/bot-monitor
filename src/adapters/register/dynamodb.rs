@@ -1,11 +1,11 @@
+use crate::domain::events::create::CreateEntry;
+use crate::domain::events::list::ListEntriesPayload;
+use crate::domain::events::remove::RemoveEntry;
 use crate::domain::register::{Register, RegisterEntry, RegisterError};
 use async_trait::async_trait;
 use aws_sdk_dynamodb::Client;
 use aws_sdk_dynamodb::types::AttributeValue;
 use std::env;
-use crate::domain::events::create::CreateEntry;
-use crate::domain::events::list::ListEntriesPayload;
-use crate::domain::events::remove::RemoveEntry;
 
 pub struct DynamoDB(Client, String);
 

@@ -40,11 +40,11 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::domain::events::list::ListEntriesPayload;
+    use crate::domain::events::remove::RemoveEntry;
     use crate::domain::register::{Register, RegisterEntry, RegisterError};
     use async_trait::async_trait;
     use tokio::sync::RwLock;
-    use crate::domain::events::list::ListEntriesPayload;
-    use crate::domain::events::remove::RemoveEntry;
 
     pub struct LocalRegister(RwLock<Vec<RegisterEntry>>);
 
@@ -90,7 +90,10 @@ mod tests {
             Ok(())
         }
 
-        async fn list(&self, entry: ListEntriesPayload) -> Result<Vec<RegisterEntry>, RegisterError> {
+        async fn list(
+            &self,
+            entry: ListEntriesPayload,
+        ) -> Result<Vec<RegisterEntry>, RegisterError> {
             Ok(self
                 .0
                 .read()
