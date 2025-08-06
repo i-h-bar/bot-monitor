@@ -24,7 +24,7 @@ To function properly, I use the following privileged intents:
 
 
 \u{001b}[1;10;4;31mHaving issues with me or have suggestions for how I can improve?\u{001b}[0m
-Please raise a ticket here https://github.com/i-h-bar/register-bot/issues
+Please raise a ticket here https://github.com/i-h-bar/bot-monitor/issues
 ```
 ";
 
