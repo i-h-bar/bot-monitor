@@ -30,7 +30,3 @@ Use the following slash commands to manage your bot tracking list:
 ## 💡 Example Use Case
 
 If you depend on moderation, music, or utility bots, downtime can be disruptive. Bot Monitor helps you stay on top of bot availability and catch issues early.
-
----
-
-**Made with ❤️ to keep your bots in check.**
