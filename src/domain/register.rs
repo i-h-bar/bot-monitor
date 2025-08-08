@@ -5,14 +5,17 @@ use async_trait::async_trait;
 use thiserror::Error;
 
 #[cfg(test)]
-use mockall::{automock, mock, predicate::*};
+use mockall::automock;
 
-#[derive(Debug, Clone, PartialEq)]
+#[cfg_attr(test, derive(PartialEq))]
+#[derive(Debug, Clone)]
 pub struct RegisterEntry {
     pub bot_id: String,
     pub user_id: String,
 }
 
+
+#[cfg_attr(test, derive(Clone))]
 #[derive(Error, Debug)]
 #[allow(clippy::enum_variant_names)]
 pub enum RegisterError {

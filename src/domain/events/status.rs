@@ -5,7 +5,7 @@ use crate::domain::app::App;
 #[cfg(test)]
 use mockall::{automock, predicate::*};
 
-#[derive(Clone)]
+#[cfg_attr(test, derive(Clone))]
 pub enum BotStates {
     Offline,
     Online,
