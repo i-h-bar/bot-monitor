@@ -4,7 +4,10 @@ use crate::domain::events::remove::RemoveEntry;
 use async_trait::async_trait;
 use thiserror::Error;
 
-#[derive(Debug, Clone)]
+#[cfg(test)]
+use mockall::{automock, mock, predicate::*};
+
+#[derive(Debug, Clone, PartialEq)]
 pub struct RegisterEntry {
     pub bot_id: String,
     pub user_id: String,
@@ -21,6 +24,8 @@ pub enum RegisterError {
     EntryRemoveError,
 }
 
+
+#[cfg_attr(test, automock)]
 #[async_trait]
 pub trait Register {
     async fn fetch(&self, bot_id: String) -> Option<Vec<RegisterEntry>>;

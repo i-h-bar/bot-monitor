@@ -40,86 +40,11 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::domain::events::list::ListEntriesPayload;
-    use crate::domain::events::remove::RemoveEntry;
-    use crate::domain::register::{Register, RegisterEntry, RegisterError};
-    use async_trait::async_trait;
-    use tokio::sync::RwLock;
-
-    pub struct LocalRegister(RwLock<Vec<RegisterEntry>>);
-
-    impl LocalRegister {
-        pub fn new() -> Self {
-            Self(RwLock::new(Vec::new()))
-        }
-    }
-
-    #[async_trait]
-    impl Register for LocalRegister {
-        async fn fetch(&self, bot_id: String) -> Option<Vec<RegisterEntry>> {
-            for entry in self.0.read().await.iter() {
-                if entry.bot_id == bot_id {
-                    return Some(vec![entry.clone()]);
-                }
-            }
-
-            None
-        }
-
-        async fn add(&self, entry: CreateEntry) -> Result<(), RegisterError> {
-            self.0.write().await.push(RegisterEntry {
-                bot_id: entry.bot_id,
-                user_id: entry.user_id,
-            });
-            log::info!("{:?}", self.0.read().await);
-            Ok(())
-        }
-
-        async fn remove(&self, entry: RemoveEntry) -> Result<(), RegisterError> {
-            let mut index: Option<usize> = None;
-            for (i, entry) in self.0.read().await.iter().enumerate() {
-                if entry.bot_id == entry.bot_id && entry.user_id == entry.user_id {
-                    index = Some(i);
-                }
-            }
-
-            if let Some(i) = index {
-                self.0.write().await.remove(i);
-            }
-            log::info!("{:?}", self.0.read().await);
-            Ok(())
-        }
-
-        async fn list(
-            &self,
-            entry: ListEntriesPayload,
-        ) -> Result<Vec<RegisterEntry>, RegisterError> {
-            Ok(self
-                .0
-                .read()
-                .await
-                .iter()
-                .filter_map(|entry| {
-                    if entry.user_id == entry.user_id {
-                        Some(entry.clone())
-                    } else {
-                        None
-                    }
-                })
-                .collect())
-        }
-    }
+    use crate::domain::register::MockRegister;
 
     #[tokio::test]
     async fn test_add_to_register() {
-        let local = LocalRegister::new();
-        let app = App::new(local);
-        // app.add_to_register(CreateEntry {
-        //     bot_id: String::new(),
-        //     user_id: String::new(),
-        //     entry_version: 0,
-        // })
-        // .await
-        // .unwrap();
+        let local = MockRegister::new();
+        let _app = App::new(local);
     }
 }
