@@ -1,4 +1,3 @@
-use crate::domain::events::status::{BotStates, StatusEvent};
 use crate::domain::register::Register;
 
 pub struct App<R>

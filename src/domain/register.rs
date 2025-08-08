@@ -14,7 +14,6 @@ pub struct RegisterEntry {
     pub user_id: String,
 }
 
-
 #[cfg_attr(test, derive(Clone))]
 #[derive(Error, Debug)]
 #[allow(clippy::enum_variant_names)]
@@ -26,7 +25,6 @@ pub enum RegisterError {
     #[error("Could not remove register entry")]
     EntryRemoveError,
 }
-
 
 #[cfg_attr(test, automock)]
 #[async_trait]
