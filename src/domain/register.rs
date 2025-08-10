@@ -4,12 +4,17 @@ use crate::domain::events::remove::RemoveEntry;
 use async_trait::async_trait;
 use thiserror::Error;
 
+#[cfg(test)]
+use mockall::automock;
+
+#[cfg_attr(test, derive(PartialEq))]
 #[derive(Debug, Clone)]
 pub struct RegisterEntry {
     pub bot_id: String,
     pub user_id: String,
 }
 
+#[cfg_attr(test, derive(Clone, PartialEq))]
 #[derive(Error, Debug)]
 #[allow(clippy::enum_variant_names)]
 pub enum RegisterError {
@@ -21,6 +26,7 @@ pub enum RegisterError {
     EntryRemoveError,
 }
 
+#[cfg_attr(test, automock)]
 #[async_trait]
 pub trait Register {
     async fn fetch(&self, bot_id: String) -> Option<Vec<RegisterEntry>>;

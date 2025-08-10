@@ -2,12 +2,17 @@ use crate::domain::app::App;
 use crate::domain::register::Register;
 use async_trait::async_trait;
 
+#[cfg(test)]
+use mockall::automock;
+
+#[cfg_attr(test, derive(Clone, Debug, PartialEq))]
 pub struct CreateEntry {
     pub user_id: String,
     pub bot_id: String,
     pub version: usize,
 }
 
+#[cfg_attr(test, automock)]
 #[async_trait]
 pub trait CreateEntryEvent {
     fn entry(&self) -> CreateEntry;
@@ -40,86 +45,76 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::domain::events::list::ListEntriesPayload;
-    use crate::domain::events::remove::RemoveEntry;
-    use crate::domain::register::{Register, RegisterEntry, RegisterError};
-    use async_trait::async_trait;
-    use tokio::sync::RwLock;
-
-    pub struct LocalRegister(RwLock<Vec<RegisterEntry>>);
-
-    impl LocalRegister {
-        pub fn new() -> Self {
-            Self(RwLock::new(Vec::new()))
-        }
-    }
-
-    #[async_trait]
-    impl Register for LocalRegister {
-        async fn fetch(&self, bot_id: String) -> Option<Vec<RegisterEntry>> {
-            for entry in self.0.read().await.iter() {
-                if entry.bot_id == bot_id {
-                    return Some(vec![entry.clone()]);
-                }
-            }
-
-            None
-        }
-
-        async fn add(&self, entry: CreateEntry) -> Result<(), RegisterError> {
-            self.0.write().await.push(RegisterEntry {
-                bot_id: entry.bot_id,
-                user_id: entry.user_id,
-            });
-            log::info!("{:?}", self.0.read().await);
-            Ok(())
-        }
-
-        async fn remove(&self, entry: RemoveEntry) -> Result<(), RegisterError> {
-            let mut index: Option<usize> = None;
-            for (i, entry) in self.0.read().await.iter().enumerate() {
-                if entry.bot_id == entry.bot_id && entry.user_id == entry.user_id {
-                    index = Some(i);
-                }
-            }
-
-            if let Some(i) = index {
-                self.0.write().await.remove(i);
-            }
-            log::info!("{:?}", self.0.read().await);
-            Ok(())
-        }
-
-        async fn list(
-            &self,
-            entry: ListEntriesPayload,
-        ) -> Result<Vec<RegisterEntry>, RegisterError> {
-            Ok(self
-                .0
-                .read()
-                .await
-                .iter()
-                .filter_map(|entry| {
-                    if entry.user_id == entry.user_id {
-                        Some(entry.clone())
-                    } else {
-                        None
-                    }
-                })
-                .collect())
-        }
-    }
+    use crate::domain::register::{MockRegister, RegisterError};
+    use mockall::predicate::*;
 
     #[tokio::test]
     async fn test_add_to_register() {
-        let local = LocalRegister::new();
-        let app = App::new(local);
-        // app.add_to_register(CreateEntry {
-        //     bot_id: String::new(),
-        //     user_id: String::new(),
-        //     entry_version: 0,
-        // })
-        // .await
-        // .unwrap();
+        let user_id = String::from("user_id_12345");
+        let bot_id = String::from("bot_id_12345");
+
+        let entry = CreateEntry {
+            user_id,
+            bot_id,
+            version: 1,
+        };
+
+        let mut register = MockRegister::new();
+        register
+            .expect_add()
+            .times(1)
+            .with(eq(entry.clone()))
+            .return_const(Ok(()));
+
+        let mut event = MockCreateEntryEvent::new();
+        event.expect_is_bot().times(1).return_const(true);
+        event.expect_entry().times(1).return_const(entry.clone());
+        event.expect_entry_added_message().times(1).return_const(());
+
+        let app = App::new(register);
+
+        app.add_to_register(event).await;
+    }
+
+    #[tokio::test]
+    async fn test_add_to_register_error() {
+        let user_id = String::from("user_id_12345");
+        let bot_id = String::from("bot_id_12345");
+
+        let entry = CreateEntry {
+            user_id,
+            bot_id,
+            version: 1,
+        };
+
+        let mut register = MockRegister::new();
+        register
+            .expect_add()
+            .times(1)
+            .with(eq(entry.clone()))
+            .return_const(Err(RegisterError::EntryCreationError));
+
+        let mut event = MockCreateEntryEvent::new();
+        event.expect_is_bot().times(1).return_const(true);
+        event.expect_entry().times(1).return_const(entry.clone());
+        event.expect_failed_message().times(1).return_const(());
+
+        let app = App::new(register);
+
+        app.add_to_register(event).await;
+    }
+
+    #[tokio::test]
+    async fn test_add_to_register_not_a_bot() {
+        let mut register = MockRegister::new();
+        register.expect_add().times(0).return_const(Ok(()));
+
+        let mut event = MockCreateEntryEvent::new();
+        event.expect_is_bot().times(1).return_const(false);
+        event.expect_not_a_bot_message().times(1).return_const(());
+
+        let app = App::new(register);
+
+        app.add_to_register(event).await;
     }
 }
