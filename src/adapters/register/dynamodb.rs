@@ -145,6 +145,38 @@ mod tests {
     use std::collections::HashMap;
 
     #[tokio::test]
+    async fn test_list_error() {
+        let user_id = String::from("user_id_12345");
+        let table_name = String::from("table_name");
+        let user_id_index = String::from("user_id-index");
+        let table_name_clone = table_name.clone();
+        let payload = ListEntriesPayload {
+            user_id: user_id.clone(),
+        };
+
+        let query = mock!(Client::query)
+            .match_requests(move |req| {
+                req.table_name == Some(table_name_clone.clone())
+                    && req.index_name == Some(user_id_index.clone())
+                    && req.key_condition_expression == Some(String::from("user_id = :value"))
+                    && req.expression_attribute_values
+                        == Some(HashMap::from([(
+                            String::from(":value"),
+                            AttributeValue::S(user_id.clone()),
+                        )]))
+            })
+            .then_error(|| QueryError::generic(ErrorMetadata::default()));
+
+        let dynamodb_client = mock_client!(aws_sdk_dynamodb, [&query]);
+
+        let dynamo_register = DynamoDB(dynamodb_client, table_name.clone());
+
+        let return_value = dynamo_register.list(payload).await.unwrap_err();
+        assert_eq!(query.num_calls(), 1);
+        assert_eq!(return_value, RegisterError::EntryFetchError)
+    }
+
+    #[tokio::test]
     async fn test_list() {
         let user_id = String::from("user_id_12345");
         let user_id_clone = user_id.clone();
@@ -160,16 +192,21 @@ mod tests {
             .match_requests(move |req| {
                 req.table_name == Some(table_name_clone.clone())
                     && req.index_name == Some(user_id_index.clone())
-                && req.key_condition_expression == Some(String::from("user_id = :value"))
-                && req.expression_attribute_values == Some(HashMap::from([
-                    (String::from(":value"), AttributeValue::S(user_id.clone())),
-                ]))
+                    && req.key_condition_expression == Some(String::from("user_id = :value"))
+                    && req.expression_attribute_values
+                        == Some(HashMap::from([(
+                            String::from(":value"),
+                            AttributeValue::S(user_id.clone()),
+                        )]))
             })
             .then_output(move || {
                 QueryOutput::builder()
                     .count(2)
                     .items(HashMap::from([
-                        (String::from("user_id"), AttributeValue::S(user_id_clone.clone())),
+                        (
+                            String::from("user_id"),
+                            AttributeValue::S(user_id_clone.clone()),
+                        ),
                         (
                             String::from("bot_id"),
                             AttributeValue::S(String::from("bot_id_0")),
@@ -180,7 +217,10 @@ mod tests {
                         ),
                     ]))
                     .items(HashMap::from([
-                        (String::from("user_id"), AttributeValue::S(user_id_clone.clone())),
+                        (
+                            String::from("user_id"),
+                            AttributeValue::S(user_id_clone.clone()),
+                        ),
                         (
                             String::from("bot_id"),
                             AttributeValue::S(String::from("bot_id_1")),
