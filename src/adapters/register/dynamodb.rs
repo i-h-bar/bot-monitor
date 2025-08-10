@@ -3,8 +3,8 @@ use crate::domain::events::list::ListEntriesPayload;
 use crate::domain::events::remove::RemoveEntry;
 use crate::domain::register::{Register, RegisterEntry, RegisterError};
 use async_trait::async_trait;
-use aws_sdk_dynamodb::Client;
 use aws_sdk_dynamodb::types::AttributeValue;
+use aws_sdk_dynamodb::Client;
 use std::env;
 
 pub struct DynamoDB(Client, String);
@@ -77,12 +77,15 @@ impl Register for DynamoDB {
 
     async fn remove(&self, entry: RemoveEntry) -> Result<(), RegisterError> {
         let bot_id_attr_value = AttributeValue::S(entry.bot_id);
+        let user_id_attr_value = AttributeValue::S(entry.user_id);
 
         let query_op = self
             .0
             .delete_item()
             .table_name(&self.1)
             .key("bot_id", bot_id_attr_value)
+            .condition_expression("user_id = :value")
+            .expression_attribute_values(":value", user_id_attr_value)
             .send()
             .await;
 
@@ -133,12 +136,47 @@ impl Register for DynamoDB {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use aws_sdk_dynamodb::Client;
+    use aws_sdk_dynamodb::error::ErrorMetadata;
+    use aws_sdk_dynamodb::operation::delete_item::DeleteItemOutput;
     use aws_sdk_dynamodb::operation::put_item::{PutItemError, PutItemOutput};
+    use aws_sdk_dynamodb::operation::query::{QueryError, QueryOutput};
+    use aws_sdk_dynamodb::Client;
     use aws_smithy_mocks::{mock, mock_client};
     use std::collections::HashMap;
-    use aws_sdk_dynamodb::error::ErrorMetadata;
-    use aws_sdk_dynamodb::operation::query::{QueryError, QueryOutput};
+
+    #[tokio::test]
+    async fn test_remove() {
+        let bot_id = String::from("bot_id_12345");
+        let user_id = String::from("user_id_12345");
+
+        let entry = RemoveEntry {
+            user_id: user_id.clone(),
+            bot_id: bot_id.clone(),
+        };
+
+        let delete_item = mock!(Client::delete_item)
+            .match_requests(move |req| {
+                req.table_name == Some(String::from("test-register")) &&
+                    req.key == Some(HashMap::from([
+                        (String::from("bot_id"), AttributeValue::S(bot_id.clone())),
+                    ])) &&
+                    req.condition_expression == Some(String::from("user_id = :value")) &&
+                    req.expression_attribute_values == Some(HashMap::from([(String::from(":value"), AttributeValue::S(user_id.clone()))]))
+            }
+
+                )
+            .then_output(|| {
+                DeleteItemOutput::builder().build()
+            });
+
+        let dynamodb_client = mock_client!(aws_sdk_dynamodb, [&delete_item]);
+
+        let dynamo_register = DynamoDB(dynamodb_client, String::from("test-register"));
+
+        let return_value = dynamo_register.remove(entry).await.unwrap();
+        assert_eq!(delete_item.num_calls(), 1);
+        assert_eq!(return_value, ())
+    }
 
     #[tokio::test]
     async fn test_fetch_none_return() {
