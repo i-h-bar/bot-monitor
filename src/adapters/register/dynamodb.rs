@@ -3,8 +3,8 @@ use crate::domain::events::list::ListEntriesPayload;
 use crate::domain::events::remove::RemoveEntry;
 use crate::domain::register::{Register, RegisterEntry, RegisterError};
 use async_trait::async_trait;
-use aws_sdk_dynamodb::types::AttributeValue;
 use aws_sdk_dynamodb::Client;
+use aws_sdk_dynamodb::types::AttributeValue;
 use std::env;
 
 pub struct DynamoDB(Client, String);
@@ -133,42 +133,51 @@ impl Register for DynamoDB {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use aws_sdk_dynamodb::operation::put_item::PutItemOutput;
     use aws_sdk_dynamodb::Client;
+    use aws_sdk_dynamodb::operation::put_item::PutItemOutput;
     use aws_smithy_mocks::{mock, mock_client};
     use std::collections::HashMap;
 
     #[tokio::test]
     async fn test_add() {
+        let bot_id = String::from("bot_id_12345");
+        let user_id = String::from("user_id_12345");
+        let version = 0;
+
+        let entry = CreateEntry {
+            user_id: user_id.clone(),
+            bot_id: bot_id.clone(),
+            version: version.clone(),
+        };
+
         let put_object = mock!(Client::put_item)
-            .match_requests(| req | {
-                req.table_name == Some(String::from("test-register")) &&
-                    req.item == Some(HashMap::from([(String::from("bot_id"), AttributeValue::S(String::from("12345")))]))
-            }
-            )
-            .then_output(
-            || {
+            .match_requests(move |req| {
+                req.table_name == Some(String::from("test-register"))
+                    && req.item
+                        == Some(HashMap::from([
+                            (String::from("bot_id"), AttributeValue::S(bot_id.clone())),
+                            (String::from("user_id"), AttributeValue::S(user_id.clone())),
+                            (
+                                String::from("entry_version"),
+                                AttributeValue::S(version.to_string()),
+                            ),
+                        ]))
+            })
+            .then_output(|| {
                 PutItemOutput::builder()
-                    .set_attributes(
-                        Some(HashMap::from(
-                            [(String::from("bot_id"), AttributeValue::S(String::from("12345")))]
-                        ))
-                    )
+                    .set_attributes(Some(HashMap::from([(
+                        String::from("bot_id"),
+                        AttributeValue::S(String::from("12345")),
+                    )])))
                     .build()
-            }
-                );
+            });
 
         let dynamodb_client = mock_client!(aws_sdk_dynamodb, [&put_object]);
 
         let dynamo_register = DynamoDB(dynamodb_client, String::from("test-register"));
 
-        let entry = CreateEntry {
-            user_id: "user_id_12345".to_string(),
-            bot_id: "bot_id_12345".to_string(),
-            version: 0,
-        };
-
-        dynamo_register.add(entry).await.unwrap();
+        let return_value = dynamo_register.add(entry).await.unwrap();
         assert_eq!(put_object.num_calls(), 1);
+        assert_eq!(return_value, ())
     }
 }

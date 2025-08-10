@@ -22,9 +22,9 @@ where
 
 #[cfg(test)]
 mod tests {
+    use super::*;
     use crate::domain::app::App;
     use crate::domain::register::MockRegister;
-    use super::*;
 
     #[tokio::test]
     async fn test_help_message() {

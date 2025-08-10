@@ -5,7 +5,6 @@ use async_trait::async_trait;
 #[cfg(test)]
 use mockall::automock;
 
-
 #[cfg_attr(test, derive(Clone))]
 pub struct ListEntriesPayload {
     pub user_id: String,
@@ -42,13 +41,12 @@ where
     }
 }
 
-
 #[cfg(test)]
 mod tests {
+    use super::*;
     use crate::domain::app::App;
     use crate::domain::register::{MockRegister, RegisterError};
     use mockall::predicate::*;
-    use super::*;
 
     #[tokio::test]
     async fn test_list_entries_error() {
@@ -56,7 +54,10 @@ mod tests {
         let payload = ListEntriesPayload { user_id };
 
         let mut register = MockRegister::new();
-        register.expect_list().times(1).return_const(Err(RegisterError::EntryFetchError));
+        register
+            .expect_list()
+            .times(1)
+            .return_const(Err(RegisterError::EntryFetchError));
 
         let mut event = MockListEvent::new();
         event.expect_failed_message().times(1).return_const(());
@@ -92,16 +93,28 @@ mod tests {
     async fn test_list_entries_one_result() {
         let user_id = String::from("user_id_12345");
         let bot_id = String::from("bot_id_12345");
-        let payload = ListEntriesPayload { user_id: user_id.clone() };
-        let entry = RegisterEntry { user_id: user_id.clone(), bot_id: bot_id.clone() };
+        let payload = ListEntriesPayload {
+            user_id: user_id.clone(),
+        };
+        let entry = RegisterEntry {
+            user_id: user_id.clone(),
+            bot_id: bot_id.clone(),
+        };
         let entries = vec![entry.clone()];
 
         let mut register = MockRegister::new();
-        register.expect_list().times(1).return_const(Ok(entries.clone()));
+        register
+            .expect_list()
+            .times(1)
+            .return_const(Ok(entries.clone()));
 
         let mut event = MockListEvent::new();
         event.expect_failed_message().times(0).return_const(());
-        event.expect_success_message().times(1).with(eq(entries.clone())).return_const(());
+        event
+            .expect_success_message()
+            .times(1)
+            .with(eq(entries.clone()))
+            .return_const(());
         event.expect_empty_message().times(0).return_const(());
         event.expect_payload().times(1).return_const(payload);
 
@@ -114,16 +127,28 @@ mod tests {
     async fn test_list_entries_multiple_result() {
         let user_id = String::from("user_id_12345");
         let bot_id = String::from("bot_id_12345");
-        let payload = ListEntriesPayload { user_id: user_id.clone() };
-        let entry = RegisterEntry { user_id: user_id.clone(), bot_id: bot_id.clone() };
+        let payload = ListEntriesPayload {
+            user_id: user_id.clone(),
+        };
+        let entry = RegisterEntry {
+            user_id: user_id.clone(),
+            bot_id: bot_id.clone(),
+        };
         let entries = vec![entry.clone(), entry.clone(), entry.clone()];
 
         let mut register = MockRegister::new();
-        register.expect_list().times(1).return_const(Ok(entries.clone()));
+        register
+            .expect_list()
+            .times(1)
+            .return_const(Ok(entries.clone()));
 
         let mut event = MockListEvent::new();
         event.expect_failed_message().times(0).return_const(());
-        event.expect_success_message().times(1).with(eq(entries.clone())).return_const(());
+        event
+            .expect_success_message()
+            .times(1)
+            .with(eq(entries.clone()))
+            .return_const(());
         event.expect_empty_message().times(0).return_const(());
         event.expect_payload().times(1).return_const(payload);
 
