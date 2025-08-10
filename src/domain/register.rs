@@ -14,7 +14,7 @@ pub struct RegisterEntry {
     pub user_id: String,
 }
 
-#[cfg_attr(test, derive(Clone))]
+#[cfg_attr(test, derive(Clone, PartialEq))]
 #[derive(Error, Debug)]
 #[allow(clippy::enum_variant_names)]
 pub enum RegisterError {
