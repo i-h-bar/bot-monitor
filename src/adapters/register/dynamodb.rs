@@ -138,6 +138,73 @@ mod tests {
     use aws_smithy_mocks::{mock, mock_client};
     use std::collections::HashMap;
     use aws_sdk_dynamodb::error::ErrorMetadata;
+    use aws_sdk_dynamodb::operation::query::{QueryError, QueryOutput};
+
+    #[tokio::test]
+    async fn test_fetch_none_return() {
+        let bot_id = String::from("bot_id_12345");
+        let bot_id_clone = bot_id.clone();
+        let table_name = String::from("table_name");
+        let table_name_clone = table_name.clone();
+
+        let query = mock!(Client::query)
+            .match_requests(move |req| {
+                req.table_name == Some(table_name_clone.clone()) &&
+                    req.key_condition_expression == Some(String::from("bot_id = :value")) &&
+                    req.expression_attribute_values == Some(HashMap::from([(String::from(":value"), AttributeValue::S(bot_id_clone.clone()))]))
+            })
+            .then_error(|| QueryError::generic(ErrorMetadata::builder().build()));
+
+        let dynamodb_client = mock_client!(aws_sdk_dynamodb, [&query]);
+
+        let dynamo_register = DynamoDB(dynamodb_client, table_name.clone());
+
+        let return_value = dynamo_register.fetch(bot_id.clone()).await;
+        assert_eq!(query.num_calls(), 1);
+        assert!(return_value.is_none())
+    }
+
+    #[tokio::test]
+    async fn test_fetch() {
+        let bot_id = String::from("bot_id_12345");
+        let bot_id_clone = bot_id.clone();
+        let bot_id_clone_2 = bot_id.clone();
+        let table_name = String::from("table_name");
+        let table_name_clone = table_name.clone();
+
+        let query = mock!(Client::query)
+            .match_requests(move |req| {
+                req.table_name == Some(table_name_clone.clone()) &&
+                    req.key_condition_expression == Some(String::from("bot_id = :value")) &&
+                    req.expression_attribute_values == Some(HashMap::from([(String::from(":value"), AttributeValue::S(bot_id_clone.clone()))]))
+            })
+            .then_output(move || {
+                QueryOutput::builder()
+                    .count(2)
+                    .items(HashMap::from([
+                        (String::from("bot_id"), AttributeValue::S(bot_id.clone())),
+                        (String::from("user_id"), AttributeValue::S(String::from("user_id_0"))),
+                        (String::from("entry_version"), AttributeValue::S(0.to_string())),
+                    ]))
+                    .items(HashMap::from([
+                        (String::from("bot_id"), AttributeValue::S(bot_id.clone())),
+                        (String::from("user_id"), AttributeValue::S(String::from("user_id_1"))),
+                        (String::from("entry_version"), AttributeValue::S(0.to_string())),
+                    ]))
+                    .build()
+            });
+
+        let dynamodb_client = mock_client!(aws_sdk_dynamodb, [&query]);
+
+        let dynamo_register = DynamoDB(dynamodb_client, table_name.clone());
+
+        let return_value = dynamo_register.fetch(bot_id_clone_2.clone()).await.unwrap();
+        assert_eq!(query.num_calls(), 1);
+        for (i, entry) in return_value.iter().enumerate() {
+            assert_eq!(entry.bot_id, bot_id_clone_2.clone());
+            assert_eq!(entry.user_id, format!("user_id_{}", i));
+        }
+    }
 
     #[tokio::test]
     async fn test_add() {
