@@ -17,3 +17,4 @@ aws-sdk-dynamodb = "1.86.0"
 [dev-dependencies]
 mockall = "0.13.1"
 aws-smithy-mocks = "0.1.1"
+aws-sdk-dynamodb = { version="1.86.0", features = ["test-util"] }
