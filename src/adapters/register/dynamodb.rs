@@ -3,8 +3,8 @@ use crate::domain::events::list::ListEntriesPayload;
 use crate::domain::events::remove::RemoveEntry;
 use crate::domain::register::{Register, RegisterEntry, RegisterError};
 use async_trait::async_trait;
-use aws_sdk_dynamodb::types::AttributeValue;
 use aws_sdk_dynamodb::Client;
+use aws_sdk_dynamodb::types::AttributeValue;
 use std::env;
 
 pub struct DynamoDB(Client, String);
@@ -136,11 +136,11 @@ impl Register for DynamoDB {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use aws_sdk_dynamodb::Client;
     use aws_sdk_dynamodb::error::ErrorMetadata;
     use aws_sdk_dynamodb::operation::delete_item::{DeleteItemError, DeleteItemOutput};
     use aws_sdk_dynamodb::operation::put_item::{PutItemError, PutItemOutput};
     use aws_sdk_dynamodb::operation::query::{QueryError, QueryOutput};
-    use aws_sdk_dynamodb::Client;
     use aws_smithy_mocks::{mock, mock_client};
     use std::collections::HashMap;
 
@@ -156,15 +156,19 @@ mod tests {
 
         let delete_item = mock!(Client::delete_item)
             .match_requests(move |req| {
-                req.table_name == Some(String::from("test-register")) &&
-                    req.key == Some(HashMap::from([
-                        (String::from("bot_id"), AttributeValue::S(bot_id.clone())),
-                    ])) &&
-                    req.condition_expression == Some(String::from("user_id = :value")) &&
-                    req.expression_attribute_values == Some(HashMap::from([(String::from(":value"), AttributeValue::S(user_id.clone()))]))
-            }
-
-            )
+                req.table_name == Some(String::from("test-register"))
+                    && req.key
+                        == Some(HashMap::from([(
+                            String::from("bot_id"),
+                            AttributeValue::S(bot_id.clone()),
+                        )]))
+                    && req.condition_expression == Some(String::from("user_id = :value"))
+                    && req.expression_attribute_values
+                        == Some(HashMap::from([(
+                            String::from(":value"),
+                            AttributeValue::S(user_id.clone()),
+                        )]))
+            })
             .then_error(|| DeleteItemError::generic(ErrorMetadata::builder().build()));
 
         let dynamodb_client = mock_client!(aws_sdk_dynamodb, [&delete_item]);
@@ -188,18 +192,20 @@ mod tests {
 
         let delete_item = mock!(Client::delete_item)
             .match_requests(move |req| {
-                req.table_name == Some(String::from("test-register")) &&
-                    req.key == Some(HashMap::from([
-                        (String::from("bot_id"), AttributeValue::S(bot_id.clone())),
-                    ])) &&
-                    req.condition_expression == Some(String::from("user_id = :value")) &&
-                    req.expression_attribute_values == Some(HashMap::from([(String::from(":value"), AttributeValue::S(user_id.clone()))]))
-            }
-
-                )
-            .then_output(|| {
-                DeleteItemOutput::builder().build()
-            });
+                req.table_name == Some(String::from("test-register"))
+                    && req.key
+                        == Some(HashMap::from([(
+                            String::from("bot_id"),
+                            AttributeValue::S(bot_id.clone()),
+                        )]))
+                    && req.condition_expression == Some(String::from("user_id = :value"))
+                    && req.expression_attribute_values
+                        == Some(HashMap::from([(
+                            String::from(":value"),
+                            AttributeValue::S(user_id.clone()),
+                        )]))
+            })
+            .then_output(|| DeleteItemOutput::builder().build());
 
         let dynamodb_client = mock_client!(aws_sdk_dynamodb, [&delete_item]);
 
@@ -219,9 +225,13 @@ mod tests {
 
         let query = mock!(Client::query)
             .match_requests(move |req| {
-                req.table_name == Some(table_name_clone.clone()) &&
-                    req.key_condition_expression == Some(String::from("bot_id = :value")) &&
-                    req.expression_attribute_values == Some(HashMap::from([(String::from(":value"), AttributeValue::S(bot_id_clone.clone()))]))
+                req.table_name == Some(table_name_clone.clone())
+                    && req.key_condition_expression == Some(String::from("bot_id = :value"))
+                    && req.expression_attribute_values
+                        == Some(HashMap::from([(
+                            String::from(":value"),
+                            AttributeValue::S(bot_id_clone.clone()),
+                        )]))
             })
             .then_error(|| QueryError::generic(ErrorMetadata::builder().build()));
 
@@ -244,22 +254,38 @@ mod tests {
 
         let query = mock!(Client::query)
             .match_requests(move |req| {
-                req.table_name == Some(table_name_clone.clone()) &&
-                    req.key_condition_expression == Some(String::from("bot_id = :value")) &&
-                    req.expression_attribute_values == Some(HashMap::from([(String::from(":value"), AttributeValue::S(bot_id_clone.clone()))]))
+                req.table_name == Some(table_name_clone.clone())
+                    && req.key_condition_expression == Some(String::from("bot_id = :value"))
+                    && req.expression_attribute_values
+                        == Some(HashMap::from([(
+                            String::from(":value"),
+                            AttributeValue::S(bot_id_clone.clone()),
+                        )]))
             })
             .then_output(move || {
                 QueryOutput::builder()
                     .count(2)
                     .items(HashMap::from([
                         (String::from("bot_id"), AttributeValue::S(bot_id.clone())),
-                        (String::from("user_id"), AttributeValue::S(String::from("user_id_0"))),
-                        (String::from("entry_version"), AttributeValue::S(0.to_string())),
+                        (
+                            String::from("user_id"),
+                            AttributeValue::S(String::from("user_id_0")),
+                        ),
+                        (
+                            String::from("entry_version"),
+                            AttributeValue::S(0.to_string()),
+                        ),
                     ]))
                     .items(HashMap::from([
                         (String::from("bot_id"), AttributeValue::S(bot_id.clone())),
-                        (String::from("user_id"), AttributeValue::S(String::from("user_id_1"))),
-                        (String::from("entry_version"), AttributeValue::S(0.to_string())),
+                        (
+                            String::from("user_id"),
+                            AttributeValue::S(String::from("user_id_1")),
+                        ),
+                        (
+                            String::from("entry_version"),
+                            AttributeValue::S(0.to_string()),
+                        ),
                     ]))
                     .build()
             });
@@ -335,14 +361,14 @@ mod tests {
             .match_requests(move |req| {
                 req.table_name == Some(String::from("test-register"))
                     && req.item
-                    == Some(HashMap::from([
-                    (String::from("bot_id"), AttributeValue::S(bot_id.clone())),
-                    (String::from("user_id"), AttributeValue::S(user_id.clone())),
-                    (
-                        String::from("entry_version"),
-                        AttributeValue::S(version.to_string()),
-                    ),
-                ]))
+                        == Some(HashMap::from([
+                            (String::from("bot_id"), AttributeValue::S(bot_id.clone())),
+                            (String::from("user_id"), AttributeValue::S(user_id.clone())),
+                            (
+                                String::from("entry_version"),
+                                AttributeValue::S(version.to_string()),
+                            ),
+                        ]))
             })
             .then_error(|| PutItemError::generic(ErrorMetadata::builder().build()));
 
