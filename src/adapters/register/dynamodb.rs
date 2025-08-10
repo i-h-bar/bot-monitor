@@ -129,3 +129,16 @@ impl Register for DynamoDB {
             .collect())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use aws_smithy_mocks::{mock_client, mock};
+    use aws_sdk_dynamodb::Client;
+    use aws_sdk_dynamodb::operation::query::builders::QueryFluentBuilder;
+
+    #[tokio::test]
+    async fn test_list() {
+
+    }
+}
