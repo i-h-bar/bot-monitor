@@ -1,4 +1,4 @@
-use crate::domain::register::Register;
+use crate::ports::outbound::register::Register;
 
 pub struct App<R>
 where

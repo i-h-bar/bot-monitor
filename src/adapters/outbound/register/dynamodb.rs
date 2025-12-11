@@ -1,7 +1,7 @@
-use crate::domain::events::create::CreateEntry;
-use crate::domain::events::list::ListEntriesPayload;
-use crate::domain::events::remove::RemoveEntry;
-use crate::domain::register::{Register, RegisterEntry, RegisterError};
+use crate::ports::inbound::client::events::create::CreateEntry;
+use crate::ports::inbound::client::events::list::ListEntriesPayload;
+use crate::ports::inbound::client::events::remove::RemoveEntry;
+use crate::ports::outbound::register::{Register, RegisterEntry, RegisterError};
 use async_trait::async_trait;
 use aws_sdk_dynamodb::Client;
 use aws_sdk_dynamodb::types::AttributeValue;

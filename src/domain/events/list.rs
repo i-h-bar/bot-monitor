@@ -1,23 +1,6 @@
 use crate::domain::app::App;
-use crate::domain::register::{Register, RegisterEntry};
-use async_trait::async_trait;
-
-#[cfg(test)]
-use mockall::automock;
-
-#[cfg_attr(test, derive(Clone))]
-pub struct ListEntriesPayload {
-    pub user_id: String,
-}
-
-#[cfg_attr(test, automock)]
-#[async_trait]
-pub trait ListEvent {
-    fn payload(&self) -> ListEntriesPayload;
-    async fn failed_message(&self);
-    async fn success_message(&self, entries: Vec<RegisterEntry>);
-    async fn empty_message(&self);
-}
+use crate::ports::inbound::client::events::list::ListEvent;
+use crate::ports::outbound::register::Register;
 
 impl<R> App<R>
 where
@@ -43,9 +26,9 @@ where
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use crate::domain::app::App;
-    use crate::domain::register::{MockRegister, RegisterError};
+    use crate::ports::inbound::client::events::list::{ListEntriesPayload, MockListEvent};
+    use crate::ports::outbound::register::{MockRegister, RegisterEntry, RegisterError};
     use mockall::predicate::*;
 
     #[tokio::test]

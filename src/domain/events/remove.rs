@@ -1,23 +1,6 @@
 use crate::domain::app::App;
-use crate::domain::register::Register;
-use async_trait::async_trait;
-
-#[cfg(test)]
-use mockall::automock;
-
-#[cfg_attr(test, derive(Clone, Debug, PartialEq))]
-pub struct RemoveEntry {
-    pub user_id: String,
-    pub bot_id: String,
-}
-
-#[cfg_attr(test, automock)]
-#[async_trait]
-pub trait RemoveEvent {
-    fn entry(&self) -> RemoveEntry;
-    async fn failed_message(&self);
-    async fn success_message(&self);
-}
+use crate::ports::inbound::client::events::remove::RemoveEvent;
+use crate::ports::outbound::register::Register;
 
 impl<R> App<R>
 where
@@ -36,9 +19,9 @@ where
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use crate::domain::app::App;
-    use crate::domain::register::{MockRegister, RegisterError};
+    use crate::ports::inbound::client::events::remove::{MockRemoveEvent, RemoveEntry};
+    use crate::ports::outbound::register::{MockRegister, RegisterError};
     use mockall::predicate::*;
 
     #[tokio::test]

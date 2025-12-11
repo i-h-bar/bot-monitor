@@ -1,5 +1,5 @@
-use crate::domain::events::create::{CreateEntry, CreateEntryEvent};
-use crate::ports::clients::discord::utils::messages;
+use crate::adapters::inbound::clients::discord::utils::messages;
+use crate::ports::inbound::client::events::remove::{RemoveEntry, RemoveEvent};
 use async_trait::async_trait;
 use serenity::all::{
     CommandInteraction, CommandOptionType, Context, CreateCommand, CreateCommandOption,
@@ -7,26 +7,26 @@ use serenity::all::{
 };
 
 pub fn register() -> CreateCommand {
-    CreateCommand::new("add")
-        .description("Add a bot to a register")
+    CreateCommand::new("remove")
+        .description("Remove a bot from the register")
         .add_option(
             CreateCommandOption::new(
                 CommandOptionType::User,
                 "bot",
-                "The bot you want to add to the register",
+                "The bot you want to remove from the register",
             )
             .required(true),
         )
         .default_member_permissions(Permissions::ADMINISTRATOR)
 }
 
-pub struct DiscordCreateEvent {
+pub struct RemoveDiscordEvent {
     ctx: Context,
     command: CommandInteraction,
     bot: User,
 }
 
-impl DiscordCreateEvent {
+impl RemoveDiscordEvent {
     pub fn new(ctx: Context, command: CommandInteraction) -> Option<Self> {
         let options = command.data.options();
         let mut bot: Option<User> = None;
@@ -52,37 +52,28 @@ impl DiscordCreateEvent {
 }
 
 #[async_trait]
-impl CreateEntryEvent for DiscordCreateEvent {
-    fn entry(&self) -> CreateEntry {
-        CreateEntry {
+impl RemoveEvent for RemoveDiscordEvent {
+    fn entry(&self) -> RemoveEntry {
+        RemoveEntry {
             user_id: self.user().id.to_string(),
             bot_id: self.bot.id.to_string(),
-            version: 0,
         }
     }
 
-    fn is_bot(&self) -> bool {
-        self.bot.bot
-    }
-
-    async fn not_a_bot_message(&self) {
+    async fn failed_message(&self) {
         messages::send_ephemeral(
             &self.ctx,
             &self.command,
-            "This is to track bots not to spy on people",
+            "Failed to remove bot from the register",
         )
         .await;
     }
 
-    async fn entry_added_message(&self) {
+    async fn success_message(&self) {
         let message = format!(
-            "Added to {} to the register. I will now DM you when it goes offline and when it comes online.",
+            "I have removed {} from the register. I will no longer DM you when the bot goes offline or comes online",
             self.bot.name
         );
         messages::send_ephemeral(&self.ctx, &self.command, &message).await;
-    }
-
-    async fn failed_message(&self) {
-        messages::send_ephemeral(&self.ctx, &self.command, "Failed to add bot to register").await;
     }
 }

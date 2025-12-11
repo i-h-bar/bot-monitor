@@ -1,5 +1,5 @@
-use crate::domain::events::help::HelpEvent;
-use crate::ports::clients::discord::utils::messages;
+use crate::adapters::inbound::clients::discord::utils::messages;
+use crate::ports::inbound::client::events::help::HelpEvent;
 use async_trait::async_trait;
 use serenity::all::{CommandInteraction, Context, CreateCommand};
 

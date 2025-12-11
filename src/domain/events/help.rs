@@ -1,15 +1,6 @@
 use crate::domain::app::App;
-use crate::domain::register::Register;
-use async_trait::async_trait;
-
-#[cfg(test)]
-use mockall::automock;
-
-#[cfg_attr(test, automock)]
-#[async_trait]
-pub trait HelpEvent {
-    async fn send_message(&self);
-}
+use crate::ports::inbound::client::events::help::HelpEvent;
+use crate::ports::outbound::register::Register;
 
 impl<R> App<R>
 where
@@ -22,9 +13,9 @@ where
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use crate::domain::app::App;
-    use crate::domain::register::MockRegister;
+    use crate::ports::inbound::client::events::help::MockHelpEvent;
+    use crate::ports::outbound::register::MockRegister;
 
     #[tokio::test]
     async fn test_help_message() {

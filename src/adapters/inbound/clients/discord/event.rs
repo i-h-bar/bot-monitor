@@ -1,6 +1,6 @@
-use crate::domain::events::status::{BotStates, StatusEvent};
-use crate::domain::register::RegisterEntry;
-use crate::ports::clients::discord::utils::user::user_from_id;
+use crate::adapters::inbound::clients::discord::utils::user::user_from_id;
+use crate::ports::inbound::client::events::status::{BotStates, StatusEvent};
+use crate::ports::outbound::register::RegisterEntry;
 use async_trait::async_trait;
 use serenity::all::{
     Context, CreateMessage, MessageBuilder, OnlineStatus, Presence, PresenceUser, UserId,

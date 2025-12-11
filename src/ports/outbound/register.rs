@@ -1,6 +1,6 @@
-use crate::domain::events::create::CreateEntry;
-use crate::domain::events::list::ListEntriesPayload;
-use crate::domain::events::remove::RemoveEntry;
+use crate::ports::inbound::client::events::create::CreateEntry;
+use crate::ports::inbound::client::events::list::ListEntriesPayload;
+use crate::ports::inbound::client::events::remove::RemoveEntry;
 use async_trait::async_trait;
 use thiserror::Error;
 

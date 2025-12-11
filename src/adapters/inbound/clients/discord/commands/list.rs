@@ -1,7 +1,7 @@
-use crate::domain::events::list::{ListEntriesPayload, ListEvent};
-use crate::domain::register::RegisterEntry;
-use crate::ports::clients::discord::utils::messages;
-use crate::ports::clients::discord::utils::user::user_from_id;
+use crate::adapters::inbound::clients::discord::utils::messages;
+use crate::adapters::inbound::clients::discord::utils::user::user_from_id;
+use crate::ports::inbound::client::events::list::{ListEntriesPayload, ListEvent};
+use crate::ports::outbound::register::RegisterEntry;
 use async_trait::async_trait;
 use serenity::all::{
     CommandInteraction, Context, CreateCommand, MessageBuilder, Permissions, User,

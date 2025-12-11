@@ -1,26 +1,6 @@
 use crate::domain::app::App;
-use crate::domain::register::{Register, RegisterEntry};
-use async_trait::async_trait;
-
-#[cfg(test)]
-use mockall::{automock, predicate::*};
-
-#[cfg_attr(test, derive(Clone))]
-pub enum BotStates {
-    Offline,
-    Online,
-    NA,
-}
-
-#[cfg_attr(test, automock)]
-#[async_trait]
-pub trait StatusEvent {
-    fn bot_id(&self) -> String;
-    fn state(&self) -> BotStates;
-    async fn is_bot(&self) -> bool;
-    async fn send_offline_warning(&self, entries: Vec<RegisterEntry>);
-    async fn send_online_message(&self, entries: Vec<RegisterEntry>);
-}
+use crate::ports::inbound::client::events::status::{BotStates, StatusEvent};
+use crate::ports::outbound::register::Register;
 
 impl<R> App<R>
 where
@@ -50,7 +30,9 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::domain::register::MockRegister;
+    use crate::ports::inbound::client::events::status::MockStatusEvent;
+    use crate::ports::outbound::register::{MockRegister, RegisterEntry};
+    use mockall::predicate::*;
 
     #[tokio::test]
     async fn test_resolve_not_bot() {

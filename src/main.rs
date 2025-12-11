@@ -1,8 +1,8 @@
-use crate::adapters::register::init_register;
 use crate::domain::app::App;
-use crate::ports::clients::Client;
-use crate::ports::clients::init_client;
+use adapters::inbound::clients::init_client;
+use adapters::outbound::init_register;
 use dotenv::dotenv;
+use ports::inbound::client::Client;
 
 mod adapters;
 mod domain;
