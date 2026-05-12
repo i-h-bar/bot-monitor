@@ -3,7 +3,9 @@ use crate::ports::outbound::register::Register;
 pub mod register;
 
 #[cfg(all(feature = "dynamodb", feature = "postgres"))]
-compile_error!("features 'dynamodb' and 'postgres' are mutually exclusive; use --no-default-features to switch backends");
+compile_error!(
+    "features 'dynamodb' and 'postgres' are mutually exclusive; use --no-default-features to switch backends"
+);
 
 #[cfg(not(any(feature = "dynamodb", feature = "postgres")))]
 compile_error!("one of the features 'dynamodb' or 'postgres' must be enabled");

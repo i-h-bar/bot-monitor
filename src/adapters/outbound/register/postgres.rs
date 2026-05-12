@@ -45,18 +45,16 @@ impl Register for Postgres {
     }
 
     async fn add(&self, entry: CreateEntry) -> Result<(), RegisterError> {
-        sqlx::query(
-            "INSERT INTO register (bot_id, user_id, entry_version) VALUES ($1, $2, $3)",
-        )
-        .bind(&entry.bot_id)
-        .bind(&entry.user_id)
-        .bind(entry.version.to_string())
-        .execute(&self.0)
-        .await
-        .map_err(|e| {
-            log::error!("failed to add entry: {e:?}");
-            RegisterError::EntryCreationError
-        })?;
+        sqlx::query("INSERT INTO register (bot_id, user_id, entry_version) VALUES ($1, $2, $3)")
+            .bind(&entry.bot_id)
+            .bind(&entry.user_id)
+            .bind(entry.version.to_string())
+            .execute(&self.0)
+            .await
+            .map_err(|e| {
+                log::error!("failed to add entry: {e:?}");
+                RegisterError::EntryCreationError
+            })?;
         Ok(())
     }
 
