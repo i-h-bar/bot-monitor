@@ -1,0 +1,6 @@
+version: '3'
+
+includes:
+  rust: .taskfiles/rust.Taskfile.yaml
+  k8: .taskfiles/k8.Taskfile.yaml
+  docker: .taskfiles/docker.Taskfile.yaml

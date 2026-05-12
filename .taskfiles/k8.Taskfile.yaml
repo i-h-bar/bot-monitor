@@ -1,0 +1,25 @@
+version: '3'
+
+tasks:
+  update-secrets: kubectl create secret generic app-secrets --from-env-file=.kube.env --dry-run=client -o yaml | kubectl apply -f -
+  migrate:
+    cmds:
+      - kubectl delete job db-migrate --ignore-not-found
+      - kubectl apply -f k8s/migrations.yaml
+      - kubectl wait pod -l job-name=db-migrate --for=condition=Ready --timeout=60s
+      - kubectl logs -l job-name=db-migrate -f
+
+  stop-k3s: sudo systemctl stop k3s
+  start-k3s: sudo systemctl start k3s
+  teardown: kubectl delete -f k8s/ || true
+
+  up:
+    cmds:
+      - task: start-k3s
+      - task: update-secrets
+      - kubectl apply -f k8s/
+
+  down:
+    cmds:
+      - task: teardown
+      - task: stop-k3s

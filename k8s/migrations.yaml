@@ -9,6 +9,19 @@ spec:
   template:
     spec:
       restartPolicy: Never
+      initContainers:
+        - name: wait-for-postgres
+          image: busybox
+          command:
+            - sh
+            - -c
+            - until nc -z $(POSTGRES_HOST) 5432; do echo "waiting for postgres..."; sleep 2; done
+          env:
+            - name: POSTGRES_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: POSTGRES_HOST
       containers:
         - name: db-migrate
           image: gitfrog/register-bot-migrate:latest
