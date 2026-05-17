@@ -1,0 +1,16 @@
+version: '3'
+
+tasks:
+  build-discord-bot: docker build -t gitfrog/register-bot .
+  push-discord-bot:
+    deps:
+      - build-discord-bot
+    cmds:
+      - docker push gitfrog/register-bot:latest
+
+  build-migrate-job: docker build -f migrate.Dockerfile -t gitfrog/register-bot-migrate .
+  push-migrate-job:
+    deps:
+      - build-migrate-job
+    cmds:
+      - docker push gitfrog/register-bot-migrate:latest

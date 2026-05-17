@@ -1,0 +1,66 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: register-bot
+  labels:
+    type: bot
+    app: register
+
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      type: bot
+      app: register
+  template:
+    metadata:
+      labels:
+        type: bot
+        app: register
+    spec:
+      initContainers:
+        - name: wait-for-postgres
+          image: busybox
+          command:
+            - sh
+            - -c
+            - until nc -z $(POSTGRES_HOST) 5432; do echo "waiting for postgres..."; sleep 2; done
+          env:
+            - name: POSTGRES_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: POSTGRES_HOST
+      containers:
+        - name: register-bot
+          image: gitfrog/register-bot:latest
+          env:
+            - name: BOT_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: BOT_TOKEN
+            - name: POSTGRES_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: POSTGRES_HOST
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: POSTGRES_USER
+            - name: POSTGRES_PW
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: POSTGRES_PW
+            - name: POSTGRES_DB
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: POSTGRES_DB
+            - name: DATABASE_URL
+              value: "postgres://$(POSTGRES_USER):$(POSTGRES_PW)@$(POSTGRES_HOST)/$(POSTGRES_DB)"
+            - name: RUST_LOG
+              value: warn,register_bot=info

@@ -1,33 +1,69 @@
 name: Deploy The Bot
+
 on:
   push:
     branches:
       - main
+  workflow_dispatch:
 
 jobs:
-  build:
+  build-bot:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Test
-        run: cargo test
+
       - name: Login to Docker Hub
-        run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+
+      - name: Run Tests
+        run: cargo test
+
       - name: Build Image
         run: docker build -t ${{ secrets.DOCKER_USERNAME }}/register-bot .
+
       - name: Push Image
         run: docker push ${{ secrets.DOCKER_USERNAME }}/register-bot:latest
 
+  build-migrate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Login to Docker Hub
+        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+
+      - name: Build Image
+        run: docker build -f migrate.Dockerfile -t ${{ secrets.DOCKER_USERNAME }}/register-bot-migrate .
+
+      - name: Push Image
+        run: docker push ${{ secrets.DOCKER_USERNAME }}/register-bot-migrate:latest
+
   deploy:
-    needs: build
+    needs:
+      - build-bot
+      - build-migrate
     runs-on: self-hosted
     steps:
-      - name: Login to Docker Hub
-        run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
-      - name: Pull Image From Docker
-        run: docker pull ${{ secrets.DOCKER_USERNAME }}/register-bot:latest
-      - name: Delete Old Container
-        run: docker rm -f register-bot-container
-      - name: Run Docker Container
-        run: docker run -d --name register-bot-container -e BOT_TOKEN='${{ secrets.BOT_TOKEN }}' -e TABLE_NAME='${{ secrets.TABLE_NAME }}' ${{ secrets.DOCKER_USERNAME }}/register-bot:latest
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Apply Secrets
+        run: |
+          kubectl create secret generic app-secrets \
+            --from-literal=BOT_TOKEN="${{ secrets.BOT_TOKEN }}" \
+            --from-literal=POSTGRES_USER="${{ secrets.POSTGRES_USER }}" \
+            --from-literal=POSTGRES_PW="${{ secrets.POSTGRES_PW }}" \
+            --from-literal=POSTGRES_DB="${{ secrets.POSTGRES_DB }}" \
+            --from-literal=POSTGRES_HOST="${{ secrets.POSTGRES_HOST }}" \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Delete Migration Job
+        run: kubectl delete job db-migrate --ignore-not-found
+
+      - name: Apply
+        run: kubectl apply -f k8s/
+
+      - name: Restart Bot Deployment
+        run: kubectl rollout restart deployment/register-bot

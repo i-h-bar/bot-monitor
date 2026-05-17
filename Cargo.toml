@@ -3,6 +3,11 @@ name = "register-bot"
 version = "0.1.0"
 edition = "2024"
 
+[features]
+default = ["postgres"]
+dynamodb = ["dep:aws-config", "dep:aws-sdk-dynamodb"]
+postgres = ["dep:sqlx"]
+
 [dependencies]
 serenity = "0.12.4"
 tokio = { version = "1.29.1", features = ["macros", "rt-multi-thread"] }
@@ -11,10 +16,11 @@ thiserror = "2.0.12"
 dotenv = "0.15.0"
 log = "0.4.27"
 env_logger = "0.11.5"
-aws-config = { version= "1.8.3", features = ["behavior-version-latest"] }
-aws-sdk-dynamodb = "1.86.0"
+aws-config = { version = "1.8.3", features = ["behavior-version-latest"], optional = true }
+aws-sdk-dynamodb = { version = "1.86.0", optional = true }
+sqlx = { version = "0.8", features = ["runtime-tokio", "tls-rustls", "postgres"], optional = true }
 
 [dev-dependencies]
 mockall = "0.13.1"
 aws-smithy-mocks = "0.1.1"
-aws-sdk-dynamodb = { version="1.86.0", features = ["test-util"] }
+aws-sdk-dynamodb = { version = "1.86.0", features = ["test-util"] }

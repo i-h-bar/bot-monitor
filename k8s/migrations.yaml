@@ -1,0 +1,50 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: db-migrate
+spec:
+  ttlSecondsAfterFinished: 120
+  activeDeadlineSeconds: 300
+  backoffLimit: 3
+  template:
+    spec:
+      restartPolicy: Never
+      initContainers:
+        - name: wait-for-postgres
+          image: busybox
+          command:
+            - sh
+            - -c
+            - until nc -z $(POSTGRES_HOST) 5432; do echo "waiting for postgres..."; sleep 2; done
+          env:
+            - name: POSTGRES_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: POSTGRES_HOST
+      containers:
+        - name: db-migrate
+          image: gitfrog/register-bot-migrate:latest
+          env:
+            - name: POSTGRES_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: POSTGRES_HOST
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: POSTGRES_USER
+            - name: POSTGRES_PW
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: POSTGRES_PW
+            - name: POSTGRES_DB
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: POSTGRES_DB
+            - name: DATABASE_URL
+              value: "postgres://$(POSTGRES_USER):$(POSTGRES_PW)@$(POSTGRES_HOST)/$(POSTGRES_DB)"

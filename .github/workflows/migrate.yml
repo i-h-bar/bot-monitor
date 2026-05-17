@@ -1,0 +1,21 @@
+name: Run Migrations
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: migrate
+  cancel-in-progress: false
+
+jobs:
+  migrate:
+    runs-on: self-hosted
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Delete Migration Job
+        run: kubectl delete job db-migrate --ignore-not-found
+
+      - name: Apply Migration Job
+        run: kubectl apply -f k8s/migrations.yaml
