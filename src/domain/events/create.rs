@@ -37,6 +37,7 @@ mod tests {
         let entry = CreateEntry {
             user_id,
             bot_id,
+            guild_id: String::from("guild_id_12345"),
             version: 1,
         };
 
@@ -65,6 +66,7 @@ mod tests {
         let entry = CreateEntry {
             user_id,
             bot_id,
+            guild_id: String::from("guild_id_12345"),
             version: 1,
         };
 

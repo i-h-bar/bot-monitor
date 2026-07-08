@@ -44,10 +44,15 @@ impl Register for DynamoDB {
                     let AttributeValue::S(user_id) = value.get("user_id")? else {
                         return None;
                     };
+                    let guild_id = match value.get("guild_id") {
+                        Some(AttributeValue::S(guild_id)) => Some(guild_id.clone()),
+                        _ => None,
+                    };
 
                     Some(RegisterEntry {
                         user_id: user_id.clone(),
                         bot_id: bot_id.clone(),
+                        guild_id,
                     })
                 })
                 .collect(),
@@ -58,6 +63,7 @@ impl Register for DynamoDB {
         let user_id = AttributeValue::S(entry.user_id);
         let bot_id = AttributeValue::S(entry.bot_id);
         let entry_version = AttributeValue::S(entry.version.to_string());
+        let guild_id = AttributeValue::S(entry.guild_id);
 
         let request = self
             .0
@@ -65,7 +71,8 @@ impl Register for DynamoDB {
             .table_name(&self.1)
             .item("bot_id", bot_id)
             .item("user_id", user_id)
-            .item("entry_version", entry_version);
+            .item("entry_version", entry_version)
+            .item("guild_id", guild_id);
 
         if let Err(why) = request.send().await {
             log::error!("failed to send add request: {why:?}");
@@ -123,13 +130,39 @@ impl Register for DynamoDB {
                 let AttributeValue::S(bot_id) = value.get("bot_id")? else {
                     return None;
                 };
+                let guild_id = match value.get("guild_id") {
+                    Some(AttributeValue::S(guild_id)) => Some(guild_id.clone()),
+                    _ => None,
+                };
 
                 Some(RegisterEntry {
                     user_id: entry.user_id.clone(),
                     bot_id: bot_id.clone(),
+                    guild_id,
                 })
             })
             .collect())
+    }
+
+    // Stub only: no GSI on guild_id exists (or ever will — see
+    // docs/superpowers/specs/2026-07-08-shared-guild-cleanup-design.md).
+    // The dynamodb feature has no CI coverage and no deployed infra;
+    // these exist purely so the feature flag keeps compiling.
+    async fn fetch_by_guild(&self, _guild_id: String) -> Result<Vec<RegisterEntry>, RegisterError> {
+        Err(RegisterError::EntryFetchError)
+    }
+
+    async fn fetch_missing_guild_id(&self) -> Result<Vec<RegisterEntry>, RegisterError> {
+        Err(RegisterError::EntryFetchError)
+    }
+
+    async fn update_guild_id(
+        &self,
+        _bot_id: String,
+        _user_id: String,
+        _guild_id: String,
+    ) -> Result<(), RegisterError> {
+        Err(RegisterError::EntryUpdateError)
     }
 }
 
@@ -412,6 +445,7 @@ mod tests {
         let entry = CreateEntry {
             user_id: user_id.clone(),
             bot_id: bot_id.clone(),
+            guild_id: String::from("guild_id_12345"),
             version: version.clone(),
         };
 
@@ -425,6 +459,10 @@ mod tests {
                             (
                                 String::from("entry_version"),
                                 AttributeValue::S(version.to_string()),
+                            ),
+                            (
+                                String::from("guild_id"),
+                                AttributeValue::S(String::from("guild_id_12345")),
                             ),
                         ]))
             })
@@ -455,6 +493,7 @@ mod tests {
         let entry = CreateEntry {
             user_id: user_id.clone(),
             bot_id: bot_id.clone(),
+            guild_id: String::from("guild_id_12345"),
             version: version.clone(),
         };
 
@@ -468,6 +507,10 @@ mod tests {
                             (
                                 String::from("entry_version"),
                                 AttributeValue::S(version.to_string()),
+                            ),
+                            (
+                                String::from("guild_id"),
+                                AttributeValue::S(String::from("guild_id_12345")),
                             ),
                         ]))
             })

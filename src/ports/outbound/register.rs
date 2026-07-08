@@ -12,6 +12,7 @@ use mockall::automock;
 pub struct RegisterEntry {
     pub bot_id: String,
     pub user_id: String,
+    pub guild_id: Option<String>,
 }
 
 #[cfg_attr(test, derive(Clone, PartialEq))]
@@ -24,6 +25,8 @@ pub enum RegisterError {
     EntryFetchError,
     #[error("Could not remove register entry")]
     EntryRemoveError,
+    #[error("Could not update register entry")]
+    EntryUpdateError,
 }
 
 #[cfg_attr(test, automock)]
@@ -33,4 +36,12 @@ pub trait Register {
     async fn add(&self, entry: CreateEntry) -> Result<(), RegisterError>;
     async fn remove(&self, entry: RemoveEntry) -> Result<(), RegisterError>;
     async fn list(&self, entry: ListEntriesPayload) -> Result<Vec<RegisterEntry>, RegisterError>;
+    async fn fetch_by_guild(&self, guild_id: String) -> Result<Vec<RegisterEntry>, RegisterError>;
+    async fn fetch_missing_guild_id(&self) -> Result<Vec<RegisterEntry>, RegisterError>;
+    async fn update_guild_id(
+        &self,
+        bot_id: String,
+        user_id: String,
+        guild_id: String,
+    ) -> Result<(), RegisterError>;
 }
