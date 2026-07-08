@@ -3,7 +3,7 @@ use crate::ports::inbound::client::events::create::CreateEntry;
 use crate::ports::inbound::client::events::create::CreateEntryEvent;
 use async_trait::async_trait;
 use serenity::all::{
-    CommandInteraction, CommandOptionType, Context, CreateCommand, CreateCommandOption,
+    CommandInteraction, CommandOptionType, Context, CreateCommand, CreateCommandOption, GuildId,
     Permissions, ResolvedValue, User,
 };
 
@@ -25,6 +25,7 @@ pub struct DiscordCreateEvent {
     ctx: Context,
     command: CommandInteraction,
     bot: User,
+    guild_id: GuildId,
 }
 
 impl DiscordCreateEvent {
@@ -40,10 +41,13 @@ impl DiscordCreateEvent {
             }
         }
 
+        let guild_id = command.guild_id?;
+
         Some(Self {
             ctx,
             command,
             bot: bot?,
+            guild_id,
         })
     }
 
@@ -58,6 +62,7 @@ impl CreateEntryEvent for DiscordCreateEvent {
         CreateEntry {
             user_id: self.user().id.to_string(),
             bot_id: self.bot.id.to_string(),
+            guild_id: self.guild_id.to_string(),
             version: 0,
         }
     }

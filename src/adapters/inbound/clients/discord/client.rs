@@ -3,15 +3,20 @@ use crate::adapters::inbound::clients::discord::commands::help::DiscordHelpEvent
 use crate::adapters::inbound::clients::discord::commands::list::DiscordListEvent;
 use crate::adapters::inbound::clients::discord::commands::remove::RemoveDiscordEvent;
 use crate::adapters::inbound::clients::discord::commands::{add, help, list, remove};
-use crate::adapters::inbound::clients::discord::event::DiscordStatusEvent;
+use crate::adapters::inbound::clients::discord::event::{
+    DiscordBackfillEvent, DiscordGuildDeleteEvent, DiscordStatusEvent,
+};
 use crate::domain::app::App;
 use crate::ports::inbound::client::Client;
 use crate::ports::outbound::register::Register;
 use async_trait::async_trait;
 use serenity::Client as SerenityClient;
-use serenity::all::{Command, Context, GatewayIntents, Interaction, Presence, Ready};
+use serenity::all::{
+    Command, Context, GatewayIntents, Guild, Interaction, Presence, Ready, UnavailableGuild,
+};
 use serenity::client::EventHandler;
 use std::env;
+use std::time::Duration;
 
 pub struct DiscordClient(SerenityClient);
 
@@ -19,7 +24,9 @@ impl DiscordClient {
     #[allow(clippy::missing_panics_doc)]
     pub async fn new<R: Register + Send + Sync + 'static>(app: App<R>) -> Self {
         let token = env::var("BOT_TOKEN").expect("Bot token wasn't in env vars");
-        let intents = GatewayIntents::DIRECT_MESSAGES | GatewayIntents::GUILD_PRESENCES;
+        let intents = GatewayIntents::DIRECT_MESSAGES
+            | GatewayIntents::GUILD_PRESENCES
+            | GatewayIntents::GUILDS;
 
         let client = SerenityClient::builder(&token, intents)
             .event_handler(app)
@@ -48,6 +55,12 @@ where
         let event = DiscordStatusEvent::new(ctx, presence);
         self.resolve_event(event).await;
     }
+
+    async fn guild_delete(&self, ctx: Context, incomplete: UnavailableGuild, _full: Option<Guild>) {
+        let event = DiscordGuildDeleteEvent::new(ctx, incomplete);
+        self.cleanup_guild(event).await;
+    }
+
     async fn ready(&self, ctx: Context, _: Ready) {
         if let Err(err) = Command::create_global_command(&ctx, add::register()).await {
             log::warn!("Could not create command {err:?}");
@@ -74,6 +87,14 @@ where
         }
 
         log::info!("Bot is ready");
+
+        // Give GUILD_CREATE events time to populate ctx.cache.guilds() after
+        // READY before relying on it to resolve shared guilds for legacy
+        // entries — otherwise the backfill could wrongly conclude an entry
+        // is orphaned just because its guild hasn't loaded into cache yet.
+        tokio::time::sleep(Duration::from_secs(30)).await;
+        let backfill_event = DiscordBackfillEvent::new(ctx);
+        self.backfill_guild_ids(backfill_event).await;
     }
 
     async fn interaction_create(&self, ctx: Context, interaction: Interaction) {

@@ -7,6 +7,7 @@ use mockall::automock;
 pub struct CreateEntry {
     pub user_id: String,
     pub bot_id: String,
+    pub guild_id: String,
     pub version: usize,
 }
 

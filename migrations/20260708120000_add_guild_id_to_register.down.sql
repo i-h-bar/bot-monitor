@@ -1,0 +1,1 @@
+ALTER TABLE register DROP COLUMN IF EXISTS guild_id;

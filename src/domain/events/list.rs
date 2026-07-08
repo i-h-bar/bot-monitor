@@ -82,6 +82,7 @@ mod tests {
         let entry = RegisterEntry {
             user_id: user_id.clone(),
             bot_id: bot_id.clone(),
+            guild_id: None,
         };
         let entries = vec![entry.clone()];
 
@@ -116,6 +117,7 @@ mod tests {
         let entry = RegisterEntry {
             user_id: user_id.clone(),
             bot_id: bot_id.clone(),
+            guild_id: None,
         };
         let entries = vec![entry.clone(), entry.clone(), entry.clone()];
 

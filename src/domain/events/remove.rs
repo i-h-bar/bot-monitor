@@ -7,11 +7,17 @@ where
     R: Register,
 {
     pub async fn remove_from_register<E: RemoveEvent>(&self, event: E) {
-        if let Err(why) = self.register.remove(event.entry()).await {
-            log::error!("Error while removing event: {why:?}");
+        let entry = event.entry();
+        let bot_id = entry.bot_id.clone();
+        let user_id = entry.user_id.clone();
+
+        if let Err(why) = self.register.remove(entry).await {
+            log::error!(
+                "Error while removing entry for bot_id={bot_id} user_id={user_id}: {why:?}"
+            );
             event.failed_message().await;
         } else {
-            log::info!("Successfully removed entry");
+            log::info!("Successfully removed entry for bot_id={bot_id} user_id={user_id}");
             event.success_message().await;
         }
     }

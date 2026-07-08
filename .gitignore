@@ -27,3 +27,4 @@ target
 .env
 .kube.env
 todo.txt
+docs/superpowers/*
