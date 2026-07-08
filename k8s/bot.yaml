@@ -31,9 +31,23 @@ spec:
                 secretKeyRef:
                   name: app-secrets
                   key: POSTGRES_HOST
+          resources:
+            requests:
+              memory: "8Mi"
+              cpu: "10m"
+            limits:
+              memory: "16Mi"
+              cpu: "50m"
       containers:
         - name: register-bot
           image: gitfrog/register-bot:latest
+          resources:
+            requests:
+              memory: "32Mi"
+              cpu: "25m"
+            limits:
+              memory: "96Mi"
+              cpu: "250m"
           env:
             - name: BOT_TOKEN
               valueFrom:

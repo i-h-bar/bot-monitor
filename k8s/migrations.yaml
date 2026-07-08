@@ -22,9 +22,23 @@ spec:
                 secretKeyRef:
                   name: app-secrets
                   key: POSTGRES_HOST
+          resources:
+            requests:
+              memory: "8Mi"
+              cpu: "10m"
+            limits:
+              memory: "16Mi"
+              cpu: "50m"
       containers:
         - name: db-migrate
           image: gitfrog/register-bot-migrate:latest
+          resources:
+            requests:
+              memory: "32Mi"
+              cpu: "25m"
+            limits:
+              memory: "64Mi"
+              cpu: "250m"
           env:
             - name: POSTGRES_HOST
               valueFrom:
